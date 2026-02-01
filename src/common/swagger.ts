@@ -1,6 +1,7 @@
 import { applyDecorators, HttpStatus, Type } from '@nestjs/common';
 import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 
+// Swagger model describing the common `{ success, message, data }` response envelope
 export class ApiResponseDto<T> {
     success: boolean;
     message: string;
@@ -8,8 +9,10 @@ export class ApiResponseDto<T> {
 }
 
 
+// Use this when an endpoint has no body data (e.g. 204/empty responses)
 export class EmptyResponse { }
 
+// Helper decorator to describe successful responses using the common envelope in Swagger
 export const ApiSuccessResponse = <TModel extends Type<any>>(
     model: TModel = EmptyResponse as TModel,
     options?: {

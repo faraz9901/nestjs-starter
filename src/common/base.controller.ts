@@ -1,5 +1,6 @@
 import { HttpStatus } from "@nestjs/common"
 
+// Simple wrapper returned by controllers so the global interceptor can format the HTTP response
 export class ApiResponse<T> {
     constructor(
         public readonly data: T,
@@ -8,6 +9,7 @@ export class ApiResponse<T> {
     ) { }
 }
 
+// Extend this base class in your controllers to get helper methods for common success responses
 export abstract class BaseController {
     protected respondOk<T>(data: T, message?: string): ApiResponse<T> {
         return new ApiResponse(data, message, HttpStatus.OK)

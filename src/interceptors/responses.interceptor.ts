@@ -8,6 +8,7 @@ import { map } from 'rxjs/operators';
 import { ApiResponse } from 'src/common/base.controller';
 
 
+// Global interceptor to normalize all successful responses
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler) {
@@ -15,7 +16,7 @@ export class ResponseInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             map((value) => {
-                // 👇 Check for ApiResponse
+                // If the controller returned an ApiResponse, use its status and message
                 if (value instanceof ApiResponse) {
                     if (value.status) {
                         res.status(value.status);
@@ -28,7 +29,7 @@ export class ResponseInterceptor implements NestInterceptor {
                     };
                 }
 
-                // 👇 Plain return
+                // For plain values, wrap them in the default response shape
                 return {
                     success: true,
                     message: 'OK',
