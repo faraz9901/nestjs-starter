@@ -1,367 +1,215 @@
-# NestJS Backend Starter
+# 🚀 NestJS Starter Template
 
-An opinionated NestJS starter template focused on **consistent API responses**, **environment-based configuration**, and **ready-to-use Swagger documentation** — designed to scale cleanly as your application grows.
+A production-ready **NestJS boilerplate** designed for scalability, consistency, and developer experience.
 
-This project uses **pnpm by default**, but includes instructions for **npm** and **yarn** as well.
-
-This template reduces boilerplate by providing:
-- Unified response envelopes
-- Reusable Swagger decorators
-- Centralized error handling
-- A clear and scalable module organization strategy
+This starter provides a solid foundation for building RESTful APIs with **standardized responses**, **advanced error handling**, **automated Swagger documentation**, and **safe environment configuration**.
 
 ---
 
-## Why this starter?
+## ✨ Features
 
-NestJS is powerful, but large projects often suffer from:
-- Inconsistent API responses
-- Swagger drift from real responses
-- Repetitive controller boilerplate
-- Scattered configuration and error handling
-
-This starter enforces **consistency by default** while staying flexible enough
-to grow into real production systems.
-
-
-
-## When this starter may not be a good fit
-
-- Apps that require GraphQL-only APIs
-- Very small throwaway services
-- Teams that prefer unopinionated Nest defaults
-
-
-## Features
-
-- **Global validation** using Nest `ValidationPipe` with:
-  - Payload whitelisting
-  - Rejection of unknown fields
-  - Automatic transformation to DTO classes
-
-- **Unified API responses** via:
-  - `ApiResponse` and `BaseController` (`src/common/base.controller.ts`)
-  - `ResponseInterceptor` (`src/interceptors/responses.interceptor.ts`)
-
-- **Centralized error handling**
-  - Global `AllExceptionsFilter` (`src/common/errors.ts`)
-  - Consistent error response format
-
-- **Environment-driven config**
-  - Custom `configService` (`src/config/config.service.ts`)
-  - Application fails fast if required env vars are missing
-
-- **Swagger out of the box**
-  - Auto-generated Swagger docs
-  - Reusable decorators (`ApiSuccessResponse`, `ApiRes`, `ApiWithBody`)
-  - Swagger enabled only in non-production environments
-
-- **Production / development awareness**
-  - Controlled via `NODE_ENV`
+- **🛡️ Global Validation**: Automatic DTO validation and transformation using `class-validator` and `class-transformer`.
+- **📦 Standardized Responses**: Uniform API response structure (`success`, `message`, `data`) via Global Interceptors.
+- **🚨 Centralized Error Handling**: Global Exception Filter to catch and format errors consistently without leaking stack traces in production.
+- **DOCUMENTATION Swagger UI**: Auto-generated API documentation available at `/api/docs` with custom decorators for clean controller code.
+- **⚙️ Config Service**: Type-safe environment variable management using `dotenv`.
+- **🏗️ Base Controller**: Helper methods (`respondOk`, `respondCreated`) to reduce boilerplate in your controllers.
+- **📐 Modular Architecture**: Organized folder structure designed for feature expansion.
 
 ---
 
-## Project Structure (Relevant Parts)
+## 🛠 Prerequisites
 
-```txt
-src/
-├── common/
-│   ├── base.controller.ts
-│   ├── errors.ts
-│   └── swagger.ts
-├── config/
-│   └── config.service.ts
-├── decorators/
-│   └── api-responses.decorator.ts
-├── interceptors/
-│   └── responses.interceptor.ts
-├── modules/
-│   └── users/
-│       ├── users.controller.ts
-│       ├── users.dto.ts
-│       └── users.module.ts
-├── main.ts
-```
+- **Node.js**: v18 or higher
+- **Package Manager**: [pnpm](https://pnpm.io/) (recommended), npm, or yarn
 
 ---
 
-## Core Concepts
+## 🚀 Getting Started
 
-### BaseController & ApiResponse
+### 1. Clone the repository
 
-All controllers **extend `BaseController`** to return standardized success responses.
-
-```ts
-return this.respondOk(data, 'Success message');
-return this.respondCreated(data, 'Created successfully');
+```bash
+git clone https://github.com/faraz9901/nestjs-starter
+cd nestjs-starter
 ```
 
-The global `ResponseInterceptor` wraps responses into:
+### 2. Install dependencies
 
-```ts
-{
-  success: boolean;
-  message: string;
-  data: T | T[] | null;
-}
-```
----
-
-## Error Handling Strategy
-
-- All exceptions are caught globally
-- HTTP errors preserve status codes
-- Unknown errors return a safe generic message
-- Stack traces are hidden in production
-
-### Error Response
-
-The global `AllExceptionsFilter` wraps errors into:
-
-```ts
-{
-  success: false,
-  message: string,
-  code: ErrorCode,
-  details?: any
-}
-```
----
-
-## Swagger Helpers
-
-### ApiSuccessResponse
-
-Located at:
-
-```txt
-src/common/swagger.ts
+```bash
+pnpm install
 ```
 
-Documents responses using the shared response envelope instead of raw DTOs.
+### 3. Configure Environment Variables
 
----
+Create a `.env` file in the root directory. You can copy the structure below:
 
-## Custom Swagger Decorators (Recommended)
-
-To avoid repetitive Swagger annotations, this starter provides composed decorators.
-
-### Location
-
-```txt
-src/decorators/api-responses.decorator.ts
-```
-
-### ApiRes – Endpoints without request body
-
-```ts
-@ApiRes(
-  summary: string,
-  responseType: Type<unknown>,
-  status?: HttpStatus,
-  options?: { isArray?: boolean }
-)
-```
-
-#### Example
-
-```ts
-@Get()
-@ApiRes('Get all users', UserDto, HttpStatus.OK, { isArray: true })
-findAll() {
-  return this.respondOk(users, 'Users fetched successfully');
-}
-```
-
----
-
-### ApiWithBody – Endpoints with request body
-
-```ts
-@ApiWithBody(
-  summary: string,
-  bodyDto: Type<unknown>,
-  responseType: Type<unknown>,
-  status?: HttpStatus,
-  options?: { isArray?: boolean }
-)
-```
-
-#### Example
-
-```ts
-@Post()
-@ApiWithBody(
-  'Create user',
-  CreateUserDto,
-  UserDto,
-  HttpStatus.CREATED,
-)
-create(@Body() dto: CreateUserDto) {
-  return this.respondCreated(dto, 'User created successfully');
-}
-```
-
----
-
-## Modules Folder Convention
-
-All user-generated features live inside **`src/modules`**.
-
-```txt
-src/modules/<feature>/
-├── <feature>.controller.ts
-├── <feature>.dto.ts
-├── <feature>.service.ts (optional)
-└── <feature>.module.ts
-```
-
-### Why this structure?
-
-- Keeps business logic isolated
-- Scales well for large applications
-- Easy to generate, move, or remove features
-- Keeps `common`, `decorators`, and `config` truly shared
-
----
-
-## Environment Configuration
-
-Create a `.env` file in the project root:
-
-```dotenv
+```env
 PORT=9000
 NODE_ENV=development
 ```
 
-### Required variables
+| Variable   | Description                                      | Default |
+| :--------- | :----------------------------------------------- | :------ |
+| `PORT`     | The port the application runs on                 | `9000`  |
+| `NODE_ENV` | Environment mode (`development` or `production`) | -       |
 
-- **PORT** – HTTP server port (app fails on startup if missing)
-
-### Optional variables
-
-- **NODE_ENV**
-  - `development`
-  - `production`
-  - Controls Swagger availability (`/api/docs` disabled in production)
-
----
-
-## Running the App
-
-### Development (watch mode)
+### 4. Run the Application
 
 ```bash
-pnpm run start:dev
-# or: npm run start:dev / yarn start:dev
-```
+# Development (Watch Mode)
+pnpm run dev
 
-### Standard start
-
-```bash
-pnpm run start
-```
-
-### Production build & run
-
-```bash
-pnpm run build
+# Production Mode
 pnpm run start:prod
 ```
 
-By default, the app listens on the `PORT` from `.env` (fallback `9000` in `main.ts`).
+The server will start on `http://localhost:9000`.  
+Swagger documentation will be available at `http://localhost:9000/api/docs` (Development mode only).
 
 ---
 
-## API Documentation (Swagger)
+## 📂 Project Structure
 
-When `NODE_ENV !== production`, Swagger is available at:
-
-```txt
-http://localhost:<PORT>/api/docs
+```
+src/
+├── common/             # Shared utilities, base classes, and filters
+│   ├── base.controller.ts  # Base properties for Controllers
+│   ├── errors.ts           # Global exception filter
+│   └── swagger.ts          # Swagger helper types
+├── config/             # Environment configuration service
+├── decorators/         # Custom decorators (e.g., @ApiRes)
+├── interceptors/       # Global response interceptors
+├── modules/            # Feature modules (Business Logic)
+│   └── users/          # Example User module
+├── app.module.ts       # Root module
+└── main.ts             # Application entry point
 ```
 
-All endpoints are documented using the common response envelope.
-
 ---
 
-## Example: Users Module
+## 👨‍💻 Development Guide
 
-This template ships with a small, fully wired **Users** feature.
+### Creating a New Resource
 
-### Controller Example
+Use the NestCLI to generate standardized resources:
 
-```ts
-@ApiTags('users')
-@Controller('users')
-export class UsersController extends BaseController {
+```bash
+nest g resource modules/my-feature
+```
 
+### Using the BaseController
+
+Extend `BaseController` in your controllers to access helper methods for consistent responses:
+
+```typescript
+import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { BaseController } from '../../common/base.controller';
+import { ApiRes } from '../../decorators/api-responses.decorator';
+
+@Controller('items')
+export class ItemsController extends BaseController {
+  
   @Get()
-  @ApiRes('Get all users', UserDto, HttpStatus.OK, { isArray: true })
+  @ApiRes('Get all items', ItemDto, HttpStatus.OK, { isArray: true })
   findAll() {
-    const users: UserDto[] = [
-      { id: 1, name: 'John Doe' },
-    ];
-
-    return this.respondOk(users, 'Users fetched successfully');
+    const data = [{ id: 1, name: 'Item 1' }];
+    // Returns: { success: true, message: 'Fetched successfully', data: [...] }
+    return this.respondOk(data, 'Fetched successfully');
   }
 }
 ```
 
-Response:
+### BaseService & Logger
 
-```json
-{
-  "success": true,
-  "message": "Users fetched successfully",
-  "data": [
-    { "id": 1, "name": "John Doe" }
-  ]
+The `BaseService` provides a pre-configured logger instance that automatically uses the service name as the context.
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { BaseService } from '../../common/base.service';
+
+@Injectable()
+export class ItemsService extends BaseService {
+  
+  doSomething() {
+    this.logger.info('Performing action...');
+    
+    try {
+      // business logic
+      this.logger.debug({ someId: 123 });
+    } catch (err) {
+      this.logger.error(err);
+    }
+  }
 }
 ```
 
+### Exception Handling
+
+This starter includes a robust error handling system with pre-defined error codes and helpers.
+
+#### throwing Exceptions
+
+Use the `HTTPEXCEPTION` helper to throw standardized errors (that get auto-formatted by the global filter).
+
+```typescript
+import { HTTPEXCEPTION, ErrorCode } from '../../common/errors';
+
+// ... inside a service or controller
+if (!item) {
+  throw HTTPEXCEPTION.NOT_FOUND('Item not found', ErrorCode.RESOURCE_NOT_FOUND);
+}
+
+if (item.isLocked) {
+  throw HTTPEXCEPTION.FORBIDDEN('Item is locked', ErrorCode.RESOURCE_LOCKED);
+}
+```
+
+#### Error Codes
+
+A comprehensive list of `ErrorCode` enums is available in `src/common/errors.ts` covering:
+
+- **Generic**: `INTERNAL_ERROR`, `BAD_REQUEST`, `TIMEOUT`...
+- **Auth**: `UNAUTHORIZED`, `TOKEN_EXPIRED`, `FORBIDDEN`...
+- **Resource**: `NOT_FOUND`, `RESOURCE_CONFLICT`, `RESOURCE_ALREADY_EXISTS`...
+- **Business Logic**: `BUSINESS_RULE_VIOLATION`, `LIMIT_EXCEEDED`...
+
+### Swagger Documentation
+
+Instead of verbose Swagger decorators, use the custom `@ApiRes` and `@ApiWithBody` decorators found in `src/decorators/api-responses.decorator.ts`.
+
+- **@ApiRes**: For GET/DELETE endpoints (no body).
+- **@ApiWithBody**: For POST/PUT/PATCH endpoints (with body).
+
 ---
 
-## Testing
+## 🧪 Testing
 
 ```bash
+# Unit tests
 pnpm run test
+
+# E2E tests
 pnpm run test:e2e
+
+# Test coverage
 pnpm run test:cov
 ```
 
-Watch mode:
+---
 
-```bash
-pnpm run test:watch
-```
+## 📜 Scripts
+
+| Script        | Description                                     |
+| :------------ | :---------------------------------------------- |
+| `build`       | Compiles the application to `dist/`             |
+| `format`      | Formats code using Prettier                     |
+| `start:dev`   | Starts the app in watch mode                    |
+| `start:prod`  | Starts the app from `dist/main.js`              |
+| `lint`        | Lints code using ESLint                         |
 
 ---
 
-## Linting & Formatting
+## 📄 License
 
-```bash
-pnpm run lint
-pnpm run format
-```
-
----
-
-## Package Manager Cheat Sheet
-
-- Install deps
-  - `pnpm install`
-  - `npm install`
-  - `yarn install`
-
-- Run scripts
-  - `pnpm run <script>`
-  - `npm run <script>`
-  - `yarn <script>`
-
----
-
-## License
-
-This project is currently marked as **UNLICENSED**.
-Update `package.json` before distributing.
+This project is licensed under the MIT License.
