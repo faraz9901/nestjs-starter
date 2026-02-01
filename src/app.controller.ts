@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { BaseController } from './common/base.controller';
+import { ApiSuccessResponse, EmptyResponse } from './common/swagger';
 
 @Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
+export class AppController extends BaseController {
+  constructor() { super(); }
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @ApiSuccessResponse(EmptyResponse)
+  getHello() {
+    return this.respondOk(null, "Server Running...");
   }
 }
