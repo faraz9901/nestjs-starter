@@ -12,6 +12,26 @@ This template reduces boilerplate by providing:
 
 ---
 
+## Why this starter?
+
+NestJS is powerful, but large projects often suffer from:
+- Inconsistent API responses
+- Swagger drift from real responses
+- Repetitive controller boilerplate
+- Scattered configuration and error handling
+
+This starter enforces **consistency by default** while staying flexible enough
+to grow into real production systems.
+
+
+
+## When this starter may not be a good fit
+
+- Apps that require GraphQL-only APIs
+- Very small throwaway services
+- Teams that prefer unopinionated Nest defaults
+
+
 ## Features
 
 - **Global validation** using Nest `ValidationPipe` with:
@@ -85,7 +105,27 @@ The global `ResponseInterceptor` wraps responses into:
   data: T | T[] | null;
 }
 ```
+---
 
+## Error Handling Strategy
+
+- All exceptions are caught globally
+- HTTP errors preserve status codes
+- Unknown errors return a safe generic message
+- Stack traces are hidden in production
+
+### Error Response
+
+The global `AllExceptionsFilter` wraps errors into:
+
+```ts
+{
+  success: false,
+  message: string,
+  code: ErrorCode,
+  details?: any
+}
+```
 ---
 
 ## Swagger Helpers
