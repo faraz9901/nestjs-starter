@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/errors';
-import { ApiResponseDto } from './common/swagger';
+import { ErrorBody, SuccessBody } from './common/swagger';
 import { configService } from './config/config.service';
 import { ResponseInterceptor } from './interceptors/responses.interceptor';
 
@@ -38,7 +38,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config, {
-      extraModels: [ApiResponseDto],
+      extraModels: [SuccessBody, ErrorBody],
     });
 
     SwaggerModule.setup('api/docs', app, document);

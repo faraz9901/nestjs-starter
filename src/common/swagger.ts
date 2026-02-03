@@ -1,16 +1,9 @@
 import { applyDecorators, HttpStatus, Type } from '@nestjs/common';
-import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from '@nestjs/swagger';
+import { ApiResponse } from './base.controller';
+import { ErrorCode } from './errors';
 
-// Swagger model describing the common `{ success, message, data }` response envelope
-export class ApiResponseDto<T> {
-    success: boolean;
-    message: string;
-    data: T;
-}
-
-
-// Use this when an endpoint has no body data (e.g. 204/empty responses)
-export class EmptyResponse { }
+export class EmptyResponse extends ApiResponse<null> { }
 
 // Helper decorator to describe successful responses using the common envelope in Swagger
 export const ApiSuccessResponse = <TModel extends Type<any>>(
@@ -33,11 +26,10 @@ export const ApiSuccessResponse = <TModel extends Type<any>>(
             : ApiOkResponse;
 
     return applyDecorators(
-        ApiExtraModels(ApiResponseDto, model),
+        ApiExtraModels(model),
         ResponseDecorator({
             schema: {
                 allOf: [
-                    { $ref: getSchemaPath(ApiResponseDto) },
                     {
                         properties: {
                             success: { example: true },
@@ -57,3 +49,30 @@ export const ApiSuccessResponse = <TModel extends Type<any>>(
         }),
     );
 };
+
+export class SuccessBody {
+
+    @ApiProperty({ example: true })
+    success: boolean
+
+    @ApiProperty({ example: 'OK' })
+    message: string
+
+    @ApiProperty({ example: null })
+    data: any
+}
+
+export class ErrorBody {
+
+    @ApiProperty({ example: false })
+    success: boolean
+
+    @ApiProperty({ example: 'Something went wrong' })
+    message: string
+
+    @ApiProperty({ example: null })
+    details: any
+
+    @ApiProperty({ enum: ErrorCode, example: ErrorCode.INTERNAL_ERROR })
+    code: ErrorCode
+}

@@ -7,6 +7,6 @@ export abstract class BaseService implements OnModuleInit {
     protected readonly logger = new AppLogger(this.constructor.name);
 
     onModuleInit() {
-        this.logger.info(`${this.constructor.name} initialized`, { color: 'green' });
+        this.logger.info(`${this.constructor.name} initialized`, { color: 'reset' });
     }
 }
