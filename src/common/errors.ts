@@ -170,7 +170,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         }
 
         /* ---------- Custom ApiError ---------- */
-        else if (exception instanceof ApiError) {
+        if (exception instanceof ApiError) {
             status = exception.status;
             message = exception.message;
             code = exception.code;

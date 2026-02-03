@@ -1,4 +1,12 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+const isTest = process.env.NODE_ENV === 'test';
+
+if (isTest) {
+    dotenv.config({ path: '.env.test', override: true });
+} else {
+    dotenv.config();
+}
 
 // Central place for reading and validating environment variables
 export enum ENV_VARIABLES {
