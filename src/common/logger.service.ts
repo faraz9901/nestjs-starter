@@ -19,7 +19,6 @@ export interface Meta {
     [key: string]: any;
 }
 
-
 @Injectable()
 export class AppLogger extends Logger {
     constructor(readonly context?: string) {
@@ -31,26 +30,22 @@ export class AppLogger extends Logger {
     }
 
     debug(data: any) {
-        this.output('DEBUG', JSON.stringify(data, null, 2));
+        this.output('DEBUG', JSON.stringify(data));
     }
 
-    warn(message: string,) {
+    warn(message: string) {
         this.output('WARN', message);
     }
 
     error(err: any) {
-        this.output('ERROR', JSON.stringify(err, null, 2));
+        this.output('ERROR', JSON.stringify(err));
     }
 
-    private output(
-        level: string,
-        message: string,
-        meta?: Meta,
-    ) {
-
+    private output(level: string, message: string, meta?: Meta) {
         const color: LogColors = meta?.color ?? 'reset';
-        const formattedMessage = configService.isProduction() ? message : `${colors[color]}${message}`;
-
+        const formattedMessage = configService.isProduction()
+            ? message
+            : `${colors[color]}${message}`;
 
         switch (level) {
             case 'DEBUG':
@@ -66,11 +61,10 @@ export class AppLogger extends Logger {
                 super.log(formattedMessage);
         }
 
-
-        const { color: _, ...rest } = meta ?? {}
+        const { color: _, ...rest } = meta ?? {};
 
         if (Object.keys(rest).length > 0) {
-            super.debug(JSON.stringify(rest, null, 2));
+            super.debug(JSON.stringify(rest));
         }
     }
 }
