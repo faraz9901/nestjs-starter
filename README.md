@@ -155,7 +155,7 @@ All API responses follow a consistent envelope structure, automatically applied 
   "success": false,
   "message": "Resource not found",
   "code": "RESOURCE_NOT_FOUND",
-  "details": null | { ... } / [...]
+  "details": null | { ... } | [...]
 }
 ```
 
