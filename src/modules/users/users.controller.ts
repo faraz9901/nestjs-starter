@@ -21,10 +21,10 @@ export class UsersController extends BaseController {
   }
 
   @Post()
-  @ApiRes('Update user', UserResponse, HttpStatus.OK)
+  @ApiRes('Create user', UserResponse, HttpStatus.OK)
   updateUser(@Body() dto: UserDto) {
     this.userService.createUser(dto);
-    return this.respondOk(null, 'User updated successfully');
+    return this.respondOk(null, 'User created successfully');
   }
 
   @Post('/update')
