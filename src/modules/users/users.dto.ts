@@ -1,9 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
+import { ExposeApiProperty } from 'src/decorators/expose-api-property.decorator';
 
 export class UserDto {
-  @ApiProperty({ example: 1 })
+  @ExposeApiProperty({ example: 1 })
+  @IsNumber()
   id: number;
 
-  @ApiProperty({ example: 'John Doe' })
+  @ExposeApiProperty({ example: 'John Doe' })
+  @IsString()
   name: string;
+
+  @ExposeApiProperty({ example: 'StrongPassword' })
+  @IsString()
+  password: string;
 }

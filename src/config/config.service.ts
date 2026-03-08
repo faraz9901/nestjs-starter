@@ -12,6 +12,9 @@ if (isTest) {
 export enum ENV_VARIABLES {
     PORT = 'PORT',
     NODE_ENV = 'NODE_ENV',
+
+    STRIP_RESPONSES = 'STRIP_RESPONSES',
+    VALIDATE_RESPONSES = 'VALIDATE_RESPONSES'
 }
 
 class ConfigService {
@@ -48,6 +51,16 @@ class ConfigService {
     public isDevelopment() {
         const mode = this.getValue(ENV_VARIABLES.NODE_ENV, false);
         return mode === 'development';
+    }
+
+    public stripResponses() {
+        const mode = this.getValue(ENV_VARIABLES.STRIP_RESPONSES, false)
+        return mode === 'true';
+    }
+
+    public validateResponses() {
+        const mode = this.getValue(ENV_VARIABLES.VALIDATE_RESPONSES, false)
+        return mode === 'true';
     }
 
 }
