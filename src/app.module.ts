@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
+import { RequestMiddleware } from './common/request-logging/request.middleware';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -18,4 +19,8 @@ import { UsersModule } from './modules/users/users.module';
   controllers: [AppController],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestMiddleware).forRoutes('*');
+  }
+}

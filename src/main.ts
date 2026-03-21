@@ -5,13 +5,16 @@ import { apiReference } from '@scalar/express-api-reference';
 import redoc from 'redoc-express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/errors';
+import { NestWinstonLogger, winstonLogger } from './common/logger.service';
 import { ErrorBody, SuccessBody } from './common/swagger';
 import { configService } from './config/config.service';
 import { ResponseInterceptor } from './interceptors/responses.interceptor';
 
 // Application entrypoint: creates the Nest app and wires up global behavior
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new NestWinstonLogger(winstonLogger),
+  });
 
   // Enable validation pipes globally so all incoming DTOs are validated
   app.useGlobalPipes(
