@@ -1,7 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import { apiReference } from '@scalar/express-api-reference';
+import redoc from 'redoc-express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/errors';
 import { ErrorBody, SuccessBody } from './common/swagger';
@@ -21,6 +22,8 @@ async function bootstrap() {
     }),
   );
 
+  const port = configService.getPort() || 9000;
+
 
   // Use a global interceptor to wrap all responses in a consistent `{ success, message, data }` structure
   app.useGlobalInterceptors(new ResponseInterceptor());
@@ -31,17 +34,47 @@ async function bootstrap() {
   // Only expose Swagger docs when not running in production
   if (!configService.isProduction()) {
     const config = new DocumentBuilder()
-      .setTitle('Swagger APIs')
-      .setDescription('API documentation')
+      .setTitle('APIs Documentation')
+      .setDescription('API documentation for this project')
       .setVersion('1.0')
-      .addBearerAuth()
+      .addServer(configService.getValue("BASE_URL", false) || `http://localhost:${port}`)
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          in: 'header',
+        },
+        'bearer',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config, {
       extraModels: [SuccessBody, ErrorBody],
     });
 
-    SwaggerModule.setup('api/docs', app, document);
+    app.getHttpAdapter().get('/api/openapi.json', (_req, res) => {
+      return res.json(document);
+    });
+
+    SwaggerModule.setup('api/docs', app, document)
+
+    // Scalar - primary modern docs
+    app.use(
+      '/api/scalar',
+      apiReference({
+        url: '/api/openapi.json',
+      }),
+    );
+
+    // Redoc - polished alternate docs
+    app.use(
+      '/api/redoc',
+      redoc({
+        title: 'Redoc API Docs',
+        specUrl: '/api/openapi.json',
+      }),
+    );
   }
 
   // Enable CORS (customize allowed origins via configService and uncomment below)
@@ -50,8 +83,8 @@ async function bootstrap() {
   //   credentials: true
   // })
 
-  // Start HTTP server on configured port (falls back to 9000 if none is set)
-  await app.listen(configService.getPort() ?? 9000);
+  // Start HTTP server on configured port
+  await app.listen(port);
 }
 
 

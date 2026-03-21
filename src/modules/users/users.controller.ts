@@ -7,7 +7,7 @@ import { UserResponse } from './user.responses';
 import { UserDto } from './users.dto';
 import { UsersService } from './users.service';
 
-@ApiTags('users')
+@ApiTags('Users')
 @Controller('users')
 export class UsersController extends BaseController {
 
