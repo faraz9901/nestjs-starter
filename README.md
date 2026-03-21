@@ -17,6 +17,9 @@ This starter provides a solid foundation for building RESTful APIs with **standa
   - [Global Validation](#global-validation)
   - [Error Handling](#error-handling)
   - [Swagger Documentation](#swagger-documentation)
+  - [OpenAPI JSON](#openapi-json)
+  - [Scalar API Reference](#scalar-api-reference)
+  - [ReDoc Documentation](#redoc-documentation)
   - [Event-Driven Architecture](#event-driven-architecture)
   - [Configuration Management](#configuration-management)
 - [Base Classes](#-base-classes)
@@ -27,6 +30,7 @@ This starter provides a solid foundation for building RESTful APIs with **standa
   - [@ExposeApiProperty](#exposeapiproperty)
 - [Response Interceptor](#-response-interceptor)
 - [Logging System](#-logging-system)
+- [Request Logging (Request ID)](#-request-logging-request-id)
 - [Development Guide](#-development-guide)
 - [Testing](#-testing)
 - [Available Scripts](#-available-scripts)
@@ -43,10 +47,15 @@ This starter provides a solid foundation for building RESTful APIs with **standa
 | **📦 Standardized Responses** | Uniform API response structure (`success`, `message`, `data`) via Global Interceptor |
 | **🚨 Centralized Error Handling** | Global Exception Filter with comprehensive error codes and consistent error formatting |
 | **📚 Swagger Documentation** | Auto-generated API docs at `/api/docs` with custom decorators for clean controller code |
+| **📄 OpenAPI JSON** | Serves OpenAPI spec at `/api/openapi.json` (development only) |
+| **🧭 Scalar API Reference** | Modern API reference UI at `/api/scalar` (development only) |
+| **📘 ReDoc Documentation** | Alternate polished docs UI at `/api/redoc` (development only) |
 | **⚡ Event-Driven Architecture** | Built-in EventEmitter2 integration for decoupled, event-based communication |
 | **⚙️ Type-Safe Config** | Environment variable management with validation and mode helpers |
 | **🏗️ Base Classes** | `BaseController` and `BaseService` with helper methods and built-in logging |
-| **🎨 Custom Decorators** | `@ApiRes`, `@ExposeApiProperty` for cleaner, more maintainable code |
+| **🪵 Winston Logging** | Winston-powered logger used for NestJS core logs and service logs |
+| **� Request ID + HTTP Logs** | Request middleware adds a request ID and logs incoming/outgoing HTTP requests |
+| **� Custom Decorators** | `@ApiRes`, `@ExposeApiProperty` for cleaner, more maintainable code |
 | **🔧 Response Transformation** | Automatic response stripping and validation via interceptor |
 
 ---
@@ -97,6 +106,12 @@ pnpm run start:prod
 The server will start on `http://localhost:9000`.  
 Swagger documentation will be available at `http://localhost:9000/api/docs` (Development mode only).
 
+Additional API documentation UIs (Development mode only):
+
+- **OpenAPI JSON**: `http://localhost:9000/api/openapi.json`
+- **Scalar API Reference**: `http://localhost:9000/api/scalar`
+- **ReDoc**: `http://localhost:9000/api/redoc`
+
 ---
 
 ## 📂 Project Structure
@@ -107,7 +122,10 @@ src/
 │   ├── base.controller.ts       # BaseController with response helpers
 │   ├── base.service.ts          # BaseService with logger & event emitter
 │   ├── errors.ts                # ErrorCode enum, ApiError, HTTPEXCEPTION, Global Filter
-│   ├── logger.service.ts        # AppLogger with colored output
+│   ├── logger.service.ts        # Winston logger + Nest logger adapter + AppLogger wrapper
+│   ├── request-logging/          # Request ID + HTTP request/response logging
+│   │   ├── request.context.ts    # AsyncLocalStorage store for per-request context
+│   │   └── request.middleware.ts # Middleware that assigns requestId + logs HTTP lifecycle
 │   └── swagger.ts               # ApiSuccessResponse decorator & helper types
 ├── config/
 │   └── config.service.ts        # Type-safe environment configuration
@@ -344,6 +362,34 @@ const config = new DocumentBuilder()
 ```
 
 **Access:** `http://localhost:9000/api/docs` (only in development mode)
+
+### OpenAPI JSON
+
+In development mode the starter also exposes the generated OpenAPI spec as JSON:
+
+- `GET /api/openapi.json`
+
+This is used by Scalar and ReDoc, and can also be used to generate clients.
+
+### Scalar API Reference
+
+Scalar is wired up as a modern, fast API reference UI:
+
+- `GET /api/scalar`
+
+Scalar reads the spec from:
+
+- `/api/openapi.json`
+
+### ReDoc Documentation
+
+ReDoc is also available as an alternate documentation UI:
+
+- `GET /api/redoc`
+
+ReDoc reads the spec from:
+
+- `/api/openapi.json`
 
 ---
 
@@ -687,13 +733,16 @@ VALIDATE_RESPONSES=true # Enable response validation
 
 ## 📝 Logging System
 
-The `AppLogger` extends NestJS's built-in Logger with additional features.
+This starter uses a **Winston-based logger** for:
+
+- NestJS framework logs
+- Service logs (via `BaseService`)
+- HTTP request lifecycle logs (via middleware)
 
 **Location:** `src/common/logger.service.ts`
 
 ### Features
 
-- Colored output in development mode
 - Multiple log levels
 - Metadata support
 - Context-aware logging (service name)
@@ -710,7 +759,6 @@ export class MyService {
 
   doSomething() {
     this.logger.info('Processing started');
-    this.logger.info('User action', { color: 'green' }); // Colored in dev
     this.logger.debug({ userId: 123, action: 'login' });
     this.logger.warn('Rate limit approaching');
     this.logger.error(new Error('Something failed'));
@@ -723,17 +771,39 @@ export class MyService {
 | Method | Description | Output Level |
 | :----- | :---------- | :----------- |
 | `info(message, meta?)` | Informational messages | `LOG` |
-| `debug(data)` | Debug data (objects, etc.) | `DEBUG` |
 | `warn(message)` | Warning messages | `WARN` |
 | `error(err)` | Error objects | `ERROR` |
 
-### Colors
+### Winston-based Logging (Implemented)
 
-Available colors for development mode:
+This starter uses **Winston** as the underlying logger:
 
-```typescript
-'green' | 'red' | 'yellow' | 'blue' | 'magenta' | 'cyan' | 'gray'
-```
+- NestJS internal logs are routed through `NestWinstonLogger` (passed into `NestFactory.create`).
+- Services extending `BaseService` get an `AppLogger` that writes into the shared `winstonLogger`.
+
+Key files:
+
+- `src/common/logger.service.ts`
+  - `winstonLogger`: the configured Winston logger
+  - `NestWinstonLogger`: implements NestJS `LoggerService`
+  - `AppLogger`: small wrapper used by `BaseService`
+
+### Request-scoped Request ID in Logs
+
+When the request logging middleware is enabled (it is applied globally in `AppModule`), each request gets a short `requestId` and that ID is automatically included in service logs:
+
+- Request ID is stored using `AsyncLocalStorage` in `src/common/request-logging/request.context.ts`.
+- Incoming/outgoing HTTP lifecycle logs are emitted by `src/common/request-logging/request.middleware.ts`.
+- The `AppLogger` pulls `requestId` from `getRequestId()` and prefixes messages.
+
+Endpoints logs look like:
+
+- `[ABC123] Incoming Request GET /users`
+- `[ABC123] Request Completed GET /users 200 12ms`
+
+Service logs look like:
+
+- `[ABC123] Fetching all products`
 
 ---
 
@@ -915,6 +985,7 @@ PORT=9000
 NODE_ENV=development
 STRIP_RESPONSES=true
 VALIDATE_RESPONSES=true
+BASE_URL=http://localhost:9000
 ```
 
 | Variable | Description | Required | Default |
@@ -923,6 +994,23 @@ VALIDATE_RESPONSES=true
 | `NODE_ENV` | Environment (`development`, `production`, `test`) | No | - |
 | `STRIP_RESPONSES` | Enable response property stripping | No | `false` |
 | `VALIDATE_RESPONSES` | Enable response validation | No | `false` |
+| `BASE_URL` | Used to set the Swagger `server` URL in the generated spec | No | `http://localhost:<PORT>` |
+
+---
+
+## 🆔 Request Logging (Request ID)
+
+This starter applies a global middleware that:
+
+- Generates a short request ID for each request.
+- Stores it in `AsyncLocalStorage` so it can be accessed anywhere in the same request lifecycle.
+- Logs incoming and completed HTTP requests using Winston.
+
+Implementation:
+
+- Middleware: `src/common/request-logging/request.middleware.ts`
+- ALS store: `src/common/request-logging/request.context.ts`
+- Global wiring: `AppModule.configure()` applies `RequestMiddleware` to `forRoutes('*')`
 
 ---
 
