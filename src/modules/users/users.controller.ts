@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { ApiRes } from 'src/decorators/api-responses.decorator';
@@ -6,6 +6,9 @@ import { BaseController } from '../../common/base.controller';
 import { UserResponse } from './user.responses';
 import { UserDto } from './users.dto';
 import { UsersService } from './users.service';
+import { EmptyResponse } from 'src/common/swagger';
+import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
+import { type Response } from 'express';
 
 @ApiTags('Users')
 @Controller('users')
@@ -21,7 +24,7 @@ export class UsersController extends BaseController {
   }
 
   @Post()
-  @ApiRes('Create user', UserResponse, HttpStatus.OK)
+  @ApiRes('Create user', EmptyResponse, HttpStatus.OK)
   updateUser(@Body() dto: UserDto) {
     this.userService.createUser(dto);
     return this.respondOk(null, 'User created successfully');
@@ -32,6 +35,21 @@ export class UsersController extends BaseController {
   update(@Body() dto: UserDto) {
     this.userService.updateUser(dto.id.toString());
     return this.respondOk(null, 'User updated successfully');
+  }
+
+  @Get('/buffer')
+  @SkipResponseTransform()
+  getBuffer(@Res() res: Response) {
+    const users = this.userService.getUsers();
+
+    const buffer = Buffer.from(JSON.stringify(users, null, 2));
+
+    res.set({
+      'Content-Type': 'application/json',
+      'Content-Disposition': 'attachment; filename="users.json"',
+    });
+
+    res.send(buffer);
   }
 
 }

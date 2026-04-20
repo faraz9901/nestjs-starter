@@ -11,6 +11,7 @@ import { ApiResponse } from 'src/common/base.controller';
 import { ApiError } from 'src/common/errors';
 import { configService } from 'src/config/config.service';
 import { RESPONSE_TYPE_KEY } from 'src/decorators/api-responses.decorator';
+import { SKIP_RESPONSE_TRANSFORM_KEY } from 'src/decorators/skip-response-transform.decorator';
 
 
 function validateResponse(dto: object) {
@@ -35,6 +36,12 @@ export class ResponseInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             map((value) => {
+
+                const skip = Reflect.getMetadata(SKIP_RESPONSE_TRANSFORM_KEY, handler);
+
+                if (skip) return value;
+
+
                 if (value instanceof ApiResponse) {
                     if (value.status) {
                         res.status(value.status);
