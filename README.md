@@ -28,10 +28,13 @@ This starter provides a solid foundation for building RESTful APIs with **standa
 - [Custom Decorators](#-custom-decorators)
   - [@ApiRes](#apires)
   - [@ExposeApiProperty](#exposeapiproperty)
+  - [@SkipResponseTransform](#skipresponsetransform)
 - [Response Interceptor](#-response-interceptor)
 - [Logging System](#-logging-system)
 - [Request Logging (Request ID)](#-request-logging-request-id)
 - [Development Guide](#-development-guide)
+  - [Database & ORM](#database--orm)
+  - [Security & CORS](#security--cors)
 - [Testing](#-testing)
 - [Available Scripts](#-available-scripts)
 - [Environment Variables](#-environment-variables)
@@ -54,9 +57,10 @@ This starter provides a solid foundation for building RESTful APIs with **standa
 | **⚙️ Type-Safe Config** | Environment variable management with validation and mode helpers |
 | **🏗️ Base Classes** | `BaseController` and `BaseService` with helper methods and built-in logging |
 | **🪵 Winston Logging** | Winston-powered logger used for NestJS core logs and service logs |
-| **� Request ID + HTTP Logs** | Request middleware adds a request ID and logs incoming/outgoing HTTP requests |
-| **� Custom Decorators** | `@ApiRes`, `@ExposeApiProperty` for cleaner, more maintainable code |
+| **🆔 Request ID + HTTP Logs** | Request middleware adds a request ID and logs incoming/outgoing HTTP requests |
+| **✨ Custom Decorators** | `@ApiRes`, `@ExposeApiProperty`, and `@SkipResponseTransform` for cleaner, more maintainable code |
 | **🔧 Response Transformation** | Automatic response stripping and validation via interceptor |
+| **🔀 Response Bypass** | `@SkipResponseTransform` decorator for raw responses (e.g., file downloads) |
 
 ---
 
@@ -469,7 +473,8 @@ Type-safe environment variable management via `ConfigService`:
 import { configService } from 'src/config/config.service';
 
 // Get raw value
-configService.getValue(ENV_VARIABLES.PORT);
+configService.getValue("PORT");
+configService.getValue("BASE_URL");
 
 // Get specific values
 configService.getPort();           // Returns PORT value
@@ -626,7 +631,7 @@ export class ItemsController {
 | Parameter | Type | Description |
 | :-------- | :--- | :---------- |
 | `summary` | `string` | Operation summary for Swagger |
-| `responseType` | `Type<unknown>` | DTO class for response shape |
+| `responseType` | `Type<unknown>` | DTO class for response shape. Use `EmptyResponse` from `src/common/swagger` for endpoints with no data. |
 | `status` | `HttpStatus` | HTTP status code (default: `OK`) |
 | `options.isArray` | `boolean` | Whether response is an array |
 
@@ -670,6 +675,34 @@ export class UserResponse {
 | `example` | `any` | Example value for Swagger |
 | `type` | `ClassConstructor` | Class for nested object transformation |
 | `...options` | `ApiPropertyOptions` | All standard ApiProperty options |
+
+---
+
+### @SkipResponseTransform
+
+Bypasses the global `ResponseInterceptor` for specific routes. Useful when returning raw data like files, buffers, or streams.
+
+**Location:** `src/decorators/skip-response-transform.decorator.ts`
+
+```typescript
+import { Controller, Get, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
+
+@Controller('files')
+export class FilesController {
+  @Get('download')
+  @SkipResponseTransform()
+  downloadFile(@Res() res: Response) {
+    const buffer = Buffer.from('file content');
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="data.txt"',
+    });
+    res.send(buffer);
+  }
+}
+```
 
 ---
 
@@ -808,6 +841,22 @@ Service logs look like:
 ---
 
 ## 👨‍💻 Development Guide
+
+### Database & ORM
+
+This boilerplate intentionally **does not include an ORM** (like TypeORM, Prisma, or Sequelize) out of the box. This keeps the starter lightweight and unopinionated, allowing you to easily integrate the database solution that best fits your project requirements.
+
+### Security & CORS
+
+CORS is disabled by default but can be enabled in `src/main.ts`:
+
+```typescript
+// src/main.ts
+app.enableCors({
+  origin: configService.getValue("FRONTEND_URL") || 'http://localhost:3000',
+  credentials: true
+});
+```
 
 ### Creating a New Module
 

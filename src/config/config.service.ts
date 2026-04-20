@@ -18,14 +18,15 @@ const ENV_VARIABLES = {
 } as const
 
 
-export type ENV_VARIABLES = typeof ENV_VARIABLES[keyof typeof ENV_VARIABLES];
+export type EnvVariableKey = keyof typeof ENV_VARIABLES;
 
 class ConfigService {
 
     constructor(private env: { [key: string]: string | undefined }) { }
 
     // Read a single environment variable and optionally throw if it is missing
-    getValue(key: ENV_VARIABLES, throwOnMissing = false): string {
+    getValue(key: EnvVariableKey, throwOnMissing = false): string {
+
         const value = this.env[ENV_VARIABLES[key]];
         if (!value && throwOnMissing) {
             throw new Error(`config error - missing env.${key}`);
@@ -35,7 +36,7 @@ class ConfigService {
     }
 
     // Ensure that all required keys exist when the app boots
-    public ensureValues(keys: ENV_VARIABLES[]) {
+    public ensureValues(keys: EnvVariableKey[]) {
         keys.forEach(k => this.getValue(k, true));
         return this;
     }
