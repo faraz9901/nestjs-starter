@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { EmptyResponse } from 'src/common/swagger';
 import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
 import { type Response } from 'express';
+import { SwrCache } from '../cache/decorators/swrCache.decorators';
 
 @ApiTags('Users')
 @Controller('users')
@@ -18,6 +19,11 @@ export class UsersController extends BaseController {
 
   @Get()
   @ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
+  @SwrCache({
+    key: (req) => `${req.method}:${req.url}`,
+    softTtlMs: 30 * 1000, // 30 seconds
+    hardTtlMs: 60 * 1000, // 60 seconds
+  })
   findAll() {
     const users = this.userService.getUsers();
     return this.respondOk(users, 'Users fetched successfully');

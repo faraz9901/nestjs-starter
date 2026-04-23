@@ -3,6 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { RequestMiddleware } from './common/request-logging/request.middleware';
 import { UsersModule } from './modules/users/users.module';
+import { CacheModule } from './modules/cache/cache.module';
 
 @Module({
   imports: [
@@ -14,6 +15,8 @@ import { UsersModule } from './modules/users/users.module';
     }),
 
     UsersModule,
+
+    CacheModule,
 
   ],
   controllers: [AppController],
