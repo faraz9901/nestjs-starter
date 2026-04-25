@@ -24,8 +24,8 @@ export class UsersController extends BaseController {
     softTtlMs: 30 * 1000, // 30 seconds
     hardTtlMs: 60 * 1000, // 60 seconds
   })
-  findAll() {
-    const users = this.userService.getUsers();
+  async findAll() {
+    const users = await this.userService.getUsers();
     return this.respondOk(users, 'Users fetched successfully');
   }
 

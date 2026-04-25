@@ -14,7 +14,7 @@ export class MemoryCacheStorage implements CacheStorage {
         await this.cache.set(
             key,
             value,
-            ttlMs ? Math.ceil(ttlMs / 1000) : undefined,
+            ttlMs ?? 5 * 60 * 1000 // 5 min,
         );
     }
 

@@ -34,24 +34,20 @@ export class SwrCacheInterceptor implements NestInterceptor {
 
         const result = await this.cache.get(key);
 
-        console.log(result);
 
         // ✅ HIT
         if (result.type === 'hit') {
-            console.log('HIT');
             return of(result.data);
         }
 
         // ⚠️ STALE
         if (result.type === 'stale') {
-            console.log('STALE');
+
             return of(result.data);
         }
 
         // ❌ MISS
         const gotLock = result.type === 'miss';
-
-        console.log('MISS');
 
         return next.handle().pipe(
             mergeMap(async (data) => {
