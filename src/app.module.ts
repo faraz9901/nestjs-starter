@@ -15,9 +15,7 @@ import { CacheModule } from './modules/cache/cache.module';
     }),
 
     UsersModule,
-
     CacheModule,
-
   ],
   controllers: [AppController],
   providers: [],

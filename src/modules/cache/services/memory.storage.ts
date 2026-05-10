@@ -1,24 +1,26 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { type Cache } from 'cache-manager';
+import { Injectable } from '@nestjs/common';
+import { LRUCache } from 'lru-cache';
 import { CacheStorage } from '../types/storage.types';
 
 @Injectable()
-export class MemoryCacheStorage implements CacheStorage {
-    constructor(@Inject('CACHE_MANAGER') private cache: Cache) { }
+export class MemoryCacheStorage
+    implements CacheStorage {
+    private cache = new LRUCache<string, any>({
+        max: 500,
+        ttl: 1000 * 60 * 5,
+    });
 
     async get<T>(key: string): Promise<T | null> {
-        return (await this.cache.get(key)) ?? null;
+        return this.cache.get(key) ?? null;
     }
 
     async set<T>(key: string, value: T, ttlMs?: number): Promise<void> {
-        await this.cache.set(
-            key,
-            value,
-            ttlMs ?? 5 * 60 * 1000 // 5 min,
-        );
+        this.cache.set(key, value, {
+            ttl: ttlMs,
+        });
     }
 
     async delete(key: string): Promise<void> {
-        await this.cache.del(key);
+        this.cache.delete(key);
     }
 }

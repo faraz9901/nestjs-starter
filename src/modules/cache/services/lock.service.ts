@@ -1,44 +1,35 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LRUCache } from 'lru-cache';
 import { LockStorage } from '../types/storage.types';
 
 @Injectable()
-export class InMemoryLockService implements OnModuleDestroy, LockStorage {
-    private locks = new Map<string, number>();
-    private interval: NodeJS.Timeout;
-    constructor() {
-        this.interval = setInterval(() => this.cleanup(), 60000); // every 1 min
-    }
-
-    onModuleDestroy() {
-        clearInterval(this.interval);
-    }
-
-    private cleanup() {
-        const now = Date.now();
-
-        for (const [key, expiry] of this.locks) {
-            if (expiry <= now) {
-                this.locks.delete(key);
-            }
-        }
-    }
+export class InMemoryLockService implements LockStorage {
+    private locks = new LRUCache<string, true>({
+        max: 5000,
+        ttlAutopurge: true,
+    });
 
     acquire(key: string, ttlMs: number): boolean {
-        const now = Date.now();
-        const expiry = this.locks.get(key);
+        if (this.locks.has(key)) {
+            return false;
+        }
 
-        if (expiry && expiry > now) return false;
+        this.locks.set(key, true, {
+            ttl: ttlMs,
+        });
 
-        this.locks.set(key, now + ttlMs);
         return true;
     }
 
-    isLocked(key: string): boolean {
-        const expiry = this.locks.get(key);
-        return expiry !== undefined && expiry > Date.now();
+    exists(key: string): boolean {
+        return this.locks.has(key);
     }
 
-    release(key: string) {
+    isLocked(key: string): boolean {
+        return this.locks.has(key);
+    }
+
+    release(key: string): void {
         this.locks.delete(key);
     }
 }

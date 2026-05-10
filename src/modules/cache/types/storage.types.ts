@@ -7,5 +7,6 @@ export interface CacheStorage {
 export interface LockStorage {
     acquire(key: string, ttlMs: number): boolean | Promise<boolean>;
     release(key: string): void | Promise<void>;
+    exists(key: string): boolean | Promise<boolean>;
     isLocked(key: string): boolean | Promise<boolean>;
 }
