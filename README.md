@@ -1,44 +1,44 @@
-# 🚀 NestJS Starter Template
+# 🚀 NestJS Production-Ready Starter Kit
 
-A production-ready **NestJS boilerplate** designed for scalability, consistency, and developer experience.
-
-This starter provides a solid foundation for building RESTful APIs with **standardized responses**, **advanced error handling**, **automated Swagger documentation**, **event-driven architecture**, and **type-safe configuration**.
+A production-ready **NestJS boilerplate** designed for scalability, consistency, and developer experience. This starter provides a solid foundation for building RESTful APIs with standardized responses, advanced error handling, automated documentation, and high-performance caching.
 
 ---
 
-## Table of Contents
+## 📖 Table of Contents
 
-- [Features Overview](#-features-overview)
-- [Prerequisites](#-prerequisites)
-- [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
-- [Core Concepts](#-core-concepts)
+- [✨ Features Overview](#-features-overview)
+- [🛠 Prerequisites](#-prerequisites)
+- [🚀 Quick Start](#-quick-start)
+- [📂 Project Structure](#-project-structure)
+- [🧠 Core Concepts](#-core-concepts)
   - [Standardized API Responses](#standardized-api-responses)
   - [Global Validation](#global-validation)
   - [Error Handling](#error-handling)
-  - [Swagger Documentation](#swagger-documentation)
-  - [OpenAPI JSON](#openapi-json)
-  - [Scalar API Reference](#scalar-api-reference)
-  - [ReDoc Documentation](#redoc-documentation)
+  - [Documentation (Swagger, Scalar, ReDoc)](#documentation-swagger-scalar-redoc)
+  - [🔄 SWR Cache System](#-swr-cache-system)
+  - [📁 Static Assets & File Management](#-static-assets--file-management)
   - [Event-Driven Architecture](#event-driven-architecture)
   - [Configuration Management](#configuration-management)
-- [Base Classes](#-base-classes)
+- [🏗️ Base Classes](#-base-classes)
   - [BaseController](#basecontroller)
   - [BaseService](#baseservice)
-- [Custom Decorators](#-custom-decorators)
+- [🎨 Custom Decorators](#-custom-decorators)
   - [@ApiRes](#apires)
   - [@ExposeApiProperty](#exposeapiproperty)
+  - [@SwrCache](#swrcache)
   - [@SkipResponseTransform](#skipresponsetransform)
-- [Response Interceptor](#-response-interceptor)
-- [Logging System](#-logging-system)
-- [Request Logging (Request ID)](#-request-logging-request-id)
-- [Development Guide](#-development-guide)
+- [🔄 Response Interceptor](#-response-interceptor)
+- [📝 Logging System](#-logging-system)
+  - [Winston Logging](#winston-based-logging)
+  - [Request ID Traceability](#request-scoped-request-id-in-logs)
+- [👨‍💻 Development Guide](#-development-guide)
   - [Database & ORM](#database--orm)
   - [Security & CORS](#security--cors)
-- [Testing](#-testing)
-- [Available Scripts](#-available-scripts)
-- [Environment Variables](#-environment-variables)
-- [License](#-license)
+  - [Creating a New Module](#creating-a-new-module)
+- [🧪 Testing](#-testing)
+- [📜 Available Scripts](#-available-scripts)
+- [🔐 Environment Variables](#-environment-variables)
+- [📄 License](#-license)
 
 ---
 
@@ -46,21 +46,16 @@ This starter provides a solid foundation for building RESTful APIs with **standa
 
 | Feature | Description |
 | :------ | :---------- |
-| **🛡️ Global Validation** | Automatic DTO validation and transformation using `class-validator` and `class-transformer` |
-| **📦 Standardized Responses** | Uniform API response structure (`success`, `message`, `data`) via Global Interceptor |
-| **🚨 Centralized Error Handling** | Global Exception Filter with comprehensive error codes and consistent error formatting |
-| **📚 Swagger Documentation** | Auto-generated API docs at `/api/docs` with custom decorators for clean controller code |
-| **📄 OpenAPI JSON** | Serves OpenAPI spec at `/api/openapi.json` (development only) |
-| **🧭 Scalar API Reference** | Modern API reference UI at `/api/scalar` (development only) |
-| **📘 ReDoc Documentation** | Alternate polished docs UI at `/api/redoc` (development only) |
-| **⚡ Event-Driven Architecture** | Built-in EventEmitter2 integration for decoupled, event-based communication |
-| **⚙️ Type-Safe Config** | Environment variable management with validation and mode helpers |
-| **🏗️ Base Classes** | `BaseController` and `BaseService` with helper methods and built-in logging |
-| **🪵 Winston Logging** | Winston-powered logger used for NestJS core logs and service logs |
-| **🆔 Request ID + HTTP Logs** | Request middleware adds a request ID and logs incoming/outgoing HTTP requests |
-| **✨ Custom Decorators** | `@ApiRes`, `@ExposeApiProperty`, and `@SkipResponseTransform` for cleaner, more maintainable code |
-| **🔧 Response Transformation** | Automatic response stripping and validation via interceptor |
-| **🔀 Response Bypass** | `@SkipResponseTransform` decorator for raw responses (e.g., file downloads) |
+| **🛡️ Global Validation** | Automatic DTO validation and transformation using `class-validator`. |
+| **📦 Standardized Responses** | Uniform API response structure (`success`, `message`, `data`) via Global Interceptor. |
+| **🚨 Centralized Error Handling** | Global Exception Filter with comprehensive error codes and consistent formatting. |
+| **📚 3x API Documentation** | Swagger UI, Scalar Reference, and ReDoc all served from one OpenAPI spec. |
+| **⚡ SWR Cache System** | High-performance Stale-While-Revalidate caching with distributed locking logic. |
+| **📣 Event-Driven Architecture** | Built-in EventEmitter2 integration for decoupled communication. |
+| **⚙️ Type-Safe Config** | Environment variable management with validation and environment mode helpers. |
+| **🏗️ Base Classes** | `BaseController` and `BaseService` with built-in logging and event helpers. |
+| **🪵 Pro Logging** | Winston-powered logger with per-request context and unique Request IDs. |
+| **✨ Custom Decorators** | Clean, maintainable code with `@ApiRes`, `@SwrCache`, and `@ExposeApiProperty`. |
 
 ---
 
@@ -71,85 +66,70 @@ This starter provides a solid foundation for building RESTful APIs with **standa
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### 1. Clone the repository
-
+### 1. Setup the Project
 ```bash
+# Clone the repository
 git clone https://github.com/faraz9901/nestjs-starter
 cd nestjs-starter
-```
 
-### 2. Install dependencies
-
-```bash
+# Install dependencies
 pnpm install
+
+# Setup environment variables
+cp .env.example .env
 ```
 
-### 3. Configure Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-PORT=9000
-NODE_ENV=development
-STRIP_RESPONSES=true
-VALIDATE_RESPONSES=true
-```
-
-### 4. Run the Application
-
+### 2. Run the Application
 ```bash
-# Development (Watch Mode)
+# Development mode (with hot-reload)
 pnpm run dev
 
-# Production Mode
+# Production mode
+pnpm run build
 pnpm run start:prod
 ```
 
-The server will start on `http://localhost:9000`.  
-Swagger documentation will be available at `http://localhost:9000/api/docs` (Development mode only).
+The server will start on `http://localhost:9000`.
 
-Additional API documentation UIs (Development mode only):
-
-- **OpenAPI JSON**: `http://localhost:9000/api/openapi.json`
-- **Scalar API Reference**: `http://localhost:9000/api/scalar`
+### 3. Explore the Documentation
+Access your API documentation in three different styles (Development only):
+- **Swagger UI**: `http://localhost:9000/api/docs`
+- **Scalar Reference**: `http://localhost:9000/api/scalar`
 - **ReDoc**: `http://localhost:9000/api/redoc`
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 src/
 ├── common/                      # Shared utilities, base classes, and filters
 │   ├── base.controller.ts       # BaseController with response helpers
 │   ├── base.service.ts          # BaseService with logger & event emitter
-│   ├── errors.ts                # ErrorCode enum, ApiError, HTTPEXCEPTION, Global Filter
-│   ├── logger.service.ts        # Winston logger + Nest logger adapter + AppLogger wrapper
-│   ├── request-logging/          # Request ID + HTTP request/response logging
-│   │   ├── request.context.ts    # AsyncLocalStorage store for per-request context
-│   │   └── request.middleware.ts # Middleware that assigns requestId + logs HTTP lifecycle
-│   └── swagger.ts               # ApiSuccessResponse decorator & helper types
+│   ├── errors.ts                # ErrorCode enum, ApiError, Global Filter
+│   ├── get-assets.ts            # 📁 Asset path resolution helper
+│   ├── logger.service.ts        # Winston logger + AppLogger wrapper
+│   ├── request-logging/          # Request ID + HTTP lifecycle logging
+│   └── swagger.ts               # Swagger helper types & SuccessBody model
 ├── config/
 │   └── config.service.ts        # Type-safe environment configuration
 ├── decorators/
-│   ├── api-responses.decorator.ts    # @ApiRes decorator for Swagger
-│   └── expose-api-property.decorator.ts  # Combined @Expose + @ApiProperty
+│   ├── api-responses.decorator.ts    # @ApiRes decorator
+│   ├── expose-api-property.decorator.ts  # Combined @Expose + @ApiProperty
+│   └── skip-response-transform.decorator.ts # Bypass interceptor
 ├── events/
 │   └── UserUpdatedEvent.ts      # Example event class
 ├── interceptors/
-│   └── responses.interceptor.ts # Global response transformation interceptor
+│   └── responses.interceptor.ts # Global response transformation
+├── assets/                      # 🖼️ Static assets (images, templates, etc.)
 ├── modules/                     # Feature modules (Business Logic)
-│   └── users/                   # Example User module
-│       ├── user.responses.ts    # Response DTOs (what gets returned)
-│       ├── users.controller.ts  # User controller
-│       ├── users.dto.ts         # Input DTOs (what comes in)
-│       ├── users.module.ts      # User module definition
-│       └── users.service.ts     # User service with event emission
-├── app.controller.ts            # Root controller (health check)
-├── app.module.ts                # Root module with EventEmitterModule
-└── main.ts                      # Application entry point
+│   ├── cache/                   # 🔥 SWR Cache Module (Storage, Locks, Decorators)
+│   └── users/                   # 👤 Example User module
+├── app.controller.ts            # Root controller
+├── app.module.ts                # Root module with global configuration
+└── main.ts                      # Application entry point & Global setup
 ```
 
 ---
@@ -158,56 +138,36 @@ src/
 
 ### Standardized API Responses
 
-All API responses follow a consistent envelope structure, automatically applied by the `ResponseInterceptor`:
+All API responses follow a consistent envelope structure, automatically applied by the `ResponseInterceptor`. This makes frontend integration predictable.
 
 #### Success Response Format
-
 ```json
 {
   "success": true,
   "message": "Operation completed successfully",
-  "data": { ... } | [...] | null
+  "data": { ... }
 }
 ```
 
 #### Error Response Format
-
 ```json
 {
   "success": false,
   "message": "Resource not found",
   "code": "RESOURCE_NOT_FOUND",
-  "details": null | { ... } | [...]
+  "details": null
 }
 ```
-
-This consistency makes frontend integration predictable and simplifies error handling on the client side.
 
 ---
 
 ### Global Validation
 
-The application uses a globally configured `ValidationPipe` with the following options:
-
-```typescript
-app.useGlobalPipes(
-  new ValidationPipe({
-    whitelist: true,           // Strip properties not in DTO
-    forbidNonWhitelisted: true, // Throw error if non-whitelisted properties exist
-    transform: true,            // Automatically transform payloads to DTO instances
-  }),
-);
-```
-
-**Benefits:**
-- Prevents extra properties from being passed to your handlers
-- Automatically transforms plain objects to class instances
-- Validates all incoming data against DTO constraints
+The application uses a globally configured `ValidationPipe`. It strips properties not in your DTO and automatically transforms payloads into class instances.
 
 **Example DTO:**
-
 ```typescript
-import { IsString, IsNumber, IsEmail, IsOptional } from 'class-validator';
+import { IsString, IsEmail } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -215,10 +175,6 @@ export class CreateUserDto {
 
   @IsEmail()
   email: string;
-
-  @IsNumber()
-  @IsOptional()
-  age?: number;
 }
 ```
 
@@ -226,780 +182,253 @@ export class CreateUserDto {
 
 ### Error Handling
 
-The starter provides a comprehensive error handling system with three layers:
+The starter provides a comprehensive error handling system:
 
-#### 1. ErrorCode Enum
-
-A complete set of standardized error codes organized by category:
-
-```typescript
-enum ErrorCode {
-  // Generic / System
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
-  INTERNAL_ERROR = 'INTERNAL_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  TIMEOUT = 'TIMEOUT',
-  BAD_REQUEST = 'BAD_REQUEST',
-  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
-
-  // Validation / Request
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  INVALID_PAYLOAD = 'INVALID_PAYLOAD',
-  INVALID_QUERY_PARAMS = 'INVALID_QUERY_PARAMS',
-  MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
-  INVALID_FORMAT = 'INVALID_FORMAT',
-  PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE',
-
-  // Authentication
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-  TOKEN_INVALID = 'TOKEN_INVALID',
-  TOKEN_MISSING = 'TOKEN_MISSING',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-
-  // Authorization
-  FORBIDDEN = 'FORBIDDEN',
-  INSUFFICIENT_PERMISSIONS = 'INSUFFICIENT_PERMISSIONS',
-  ACCESS_DENIED = 'ACCESS_DENIED',
-
-  // Resource
-  NOT_FOUND = 'NOT_FOUND',
-  RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
-  RESOURCE_ALREADY_EXISTS = 'RESOURCE_ALREADY_EXISTS',
-  RESOURCE_CONFLICT = 'RESOURCE_CONFLICT',
-  RESOURCE_LOCKED = 'RESOURCE_LOCKED',
-
-  // Business Logic
-  BUSINESS_RULE_VIOLATION = 'BUSINESS_RULE_VIOLATION',
-  OPERATION_NOT_ALLOWED = 'OPERATION_NOT_ALLOWED',
-  INVALID_STATE = 'INVALID_STATE',
-  LIMIT_EXCEEDED = 'LIMIT_EXCEEDED',
-
-  // External / Integrations
-  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  EXTERNAL_SERVICE_UNAVAILABLE = 'EXTERNAL_SERVICE_UNAVAILABLE',
-  EXTERNAL_TIMEOUT = 'EXTERNAL_TIMEOUT',
-  THIRD_PARTY_FAILURE = 'THIRD_PARTY_FAILURE',
-}
-```
-
-#### 2. HTTPEXCEPTION Helper
-
-A namespace with factory methods for creating standardized errors:
-
-```typescript
-import { HTTPEXCEPTION, ErrorCode } from 'src/common/errors';
-
-// 400 Bad Request
-throw HTTPEXCEPTION.BAD_REQUEST('Invalid data format', ErrorCode.INVALID_FORMAT);
-
-// 400 Validation Error (convenience method)
-throw HTTPEXCEPTION.VALIDATION('Email is required', { field: 'email' });
-
-// 401 Unauthorized
-throw HTTPEXCEPTION.UNAUTHORIZED('Please log in');
-throw HTTPEXCEPTION.TOKEN_EXPIRED();
-
-// 403 Forbidden
-throw HTTPEXCEPTION.FORBIDDEN('You cannot access this resource', ErrorCode.INSUFFICIENT_PERMISSIONS);
-
-// 404 Not Found
-throw HTTPEXCEPTION.NOT_FOUND('User not found');
-
-// 409 Conflict
-throw HTTPEXCEPTION.CONFLICT('Email already exists', ErrorCode.RESOURCE_ALREADY_EXISTS);
-
-// 422 Unprocessable Entity
-throw HTTPEXCEPTION.UNPROCESSABLE('Cannot delete active subscription');
-
-// 500 Internal Server Error
-throw HTTPEXCEPTION.INTERNAL('Database connection failed');
-
-// 503 Service Unavailable
-throw HTTPEXCEPTION.SERVICE_UNAVAILABLE('Payment gateway is down');
-```
-
-#### 3. AllExceptionsFilter
-
-A global exception filter that catches all errors and formats them consistently:
-
-- Catches `ApiError` instances (custom errors)
-- Catches NestJS `HttpException` instances
-- Catches unknown errors and wraps them appropriately
-- Maps HTTP status codes to error codes automatically
-- Hides stack traces in production mode
+1.  **ErrorCode Enum**: A complete set of standardized codes (e.g., `VALIDATION_ERROR`, `UNAUTHORIZED`, `RESOURCE_NOT_FOUND`).
+2.  **HTTPEXCEPTION Helper**: Factory methods for throwing standardized errors.
+    ```typescript
+    throw HTTPEXCEPTION.NOT_FOUND('User not found');
+    throw HTTPEXCEPTION.VALIDATION('Invalid email format', { field: 'email' });
+    ```
+3.  **AllExceptionsFilter**: Catches all errors, formats them consistently, and hides stack traces in production.
 
 ---
 
-### Swagger Documentation
+### 🔄 SWR Cache System
 
-The starter provides custom decorators to reduce Swagger boilerplate while maintaining full documentation capabilities.
+This starter includes a custom **Stale-While-Revalidate (SWR)** caching module. It allows your API to serve "stale" data instantly while refreshing the cache in the background.
 
-#### @ApiSuccessResponse Decorator
+#### Key Features:
+- **Soft TTL**: Period during which stale data is served.
+- **Hard TTL**: Absolute expiration of the cache entry.
+- **Distributed Locking Logic**: Prevents "cache stampede" by ensuring only one request refreshes the cache at a time.
+- **Memory Storage**: Uses `lru-cache` for high-performance in-memory storage.
 
-Located in `src/common/swagger.ts`, this decorator generates the standard response envelope in Swagger:
-
+**Example Usage:**
 ```typescript
-import { ApiSuccessResponse } from 'src/common/swagger';
-
 @Get()
-@ApiSuccessResponse(UserDto, { 
-  isArray: true, 
-  message: 'Users fetched successfully',
-  status: HttpStatus.OK 
+@SwrCache({
+  key: (req) => `users:list:${req.query.page}`, // Custom cache key
+  softTtlMs: 30000, // 30 seconds
+  hardTtlMs: 60000, // 60 seconds
 })
-findAll() { ... }
+async findAll() {
+  return this.userService.getUsers();
+}
 ```
 
-#### Swagger Configuration
-
-Swagger is automatically configured in `main.ts`:
+#### 🛠️ Manual Control with `SwrCacheService`
+For cases where the `@SwrCache` decorator isn't flexible enough (e.g., manual invalidation or conditional caching), you can inject the `SwrCacheService` directly.
 
 ```typescript
-const config = new DocumentBuilder()
-  .setTitle('Swagger APIs')
-  .setDescription('API documentation')
-  .setVersion('1.0')
-  .addBearerAuth()
-  .build();
+@Injectable()
+export class ProductService {
+  constructor(private readonly cache: SwrCacheService) {}
+
+  async getProduct(id: string) {
+    const key = `product:${id}`;
+    const result = await this.cache.get<Product>(key);
+
+    if (result.type === 'hit' || result.type === 'stale') {
+      return result.data;
+    }
+
+    // On miss, fetch from source and update cache
+    const product = await this.fetchProductFromDB(id);
+    await this.cache.set(key, product, 30000, 60000);
+    return product;
+  }
+
+  async invalidateProduct(id: string) {
+    await this.cache.delete(`product:${id}`);
+  }
+}
 ```
 
-**Access:** `http://localhost:9000/api/docs` (only in development mode)
+#### 🔌 Custom Storage (Redis/External)
+The caching system is pluggable. To use Redis instead of memory, implement the `CacheStorage` or `LockStorage` interfaces and update the providers in `cache.module.ts`.
 
-### OpenAPI JSON
+```typescript
+// 1. Implement the interface
+@Injectable()
+export class RedisCacheStorage implements CacheStorage {
+  async get<T>(key: string): Promise<T | null> { /* ... */ }
+  async set<T>(key: string, value: T, ttlMs?: number): Promise<void> { /* ... */ }
+  async delete(key: string): Promise<void> { /* ... */ }
+}
 
-In development mode the starter also exposes the generated OpenAPI spec as JSON:
+// 2. Register in cache.module.ts
+{
+  provide: CACHE_STORAGE,
+  useClass: RedisCacheStorage,
+}
+```
 
-- `GET /api/openapi.json`
+---
 
-This is used by Scalar and ReDoc, and can also be used to generate clients.
+### 📁 Static Assets & File Management
 
-### Scalar API Reference
+The starter kit includes a dedicated `src/assets` folder for static files (images, templates, etc.). These are automatically tracked and copied to the `dist` folder during the build process.
 
-Scalar is wired up as a modern, fast API reference UI:
+#### 🛠️ Helper: `getAssetPath`
+Located in `src/common/get-assets.ts`, this utility ensures you always get the correct absolute path to your assets, whether running in development or production.
 
-- `GET /api/scalar`
+**Example Usage in a Service:**
+```typescript
+import { getAssetPath } from 'src/common/get-assets';
 
-Scalar reads the spec from:
-
-- `/api/openapi.json`
-
-### ReDoc Documentation
-
-ReDoc is also available as an alternate documentation UI:
-
-- `GET /api/redoc`
-
-ReDoc reads the spec from:
-
-- `/api/openapi.json`
+@Injectable()
+export class UsersService {
+  async processImage(filename: string) {
+    // Resolves to: /absolute/path/to/src/assets/images/logo.png
+    const imagePath = await getAssetPath('images', filename);
+    
+    // ... logic to read/process the file
+    return imagePath;
+  }
+}
+```
 
 ---
 
 ### Event-Driven Architecture
 
-The starter includes `@nestjs/event-emitter` for decoupled, event-based communication.
+Built-in support for `@nestjs/event-emitter`.
 
-#### Event Base Class
-
-Extend the `Event` class for type-safe events:
-
-```typescript
-// src/events/UserUpdatedEvent.ts
-import { Event } from 'src/common/base.service';
-
-export class UserUpdatedEvent extends Event {
-  constructor(public readonly userId: string) {
-    super(UserUpdatedEvent.name);
-  }
-}
-```
-
-#### Emitting Events
-
-Use the `emit` or `emitAsync` methods from `BaseService`:
-
+#### 1. Emitting Events
 ```typescript
 @Injectable()
 export class UsersService extends BaseService {
   updateUser(userId: string) {
-    // ... update logic
-    
-    // Emit synchronously (fire and forget)
+    // ... logic
     this.emit(new UserUpdatedEvent(userId));
-    
-    // Or emit asynchronously (wait for handlers)
-    await this.emitAsync(new UserUpdatedEvent(userId));
   }
 }
 ```
 
-#### Listening to Events
-
-Use the `@OnEvent` decorator:
-
+#### 2. Listening to Events
 ```typescript
-@Injectable()
-export class UsersService extends BaseService {
-  @OnEvent(UserUpdatedEvent.name)
-  handleUserUpdatedEvent(event: UserUpdatedEvent) {
-    this.logger.info('User updated', { userId: event.userId });
-    // ... handle event (e.g., send email, update cache)
-  }
+@OnEvent(UserUpdatedEvent.name)
+handleUserUpdated(event: UserUpdatedEvent) {
+  this.logger.info('Handling user update event', { userId: event.userId });
 }
 ```
-
-**EventEmitterModule Configuration:**
-
-```typescript
-// app.module.ts
-EventEmitterModule.forRoot({
-  wildcard: false,
-  delimiter: '.',
-  global: true,
-})
-```
-
----
-
-### Configuration Management
-
-Type-safe environment variable management via `ConfigService`:
-
-#### Available Methods
-
-```typescript
-import { configService } from 'src/config/config.service';
-
-// Get raw value
-configService.getValue("PORT");
-configService.getValue("BASE_URL");
-
-// Get specific values
-configService.getPort();           // Returns PORT value
-configService.isProduction();      // Returns NODE_ENV === 'production'
-configService.isDevelopment();     // Returns NODE_ENV === 'development'
-configService.stripResponses();    // Returns STRIP_RESPONSES === 'true'
-configService.validateResponses(); // Returns VALIDATE_RESPONSES === 'true'
-
-// Validate required variables
-configService.ensureValues([ENV_VARIABLES.PORT]);
-```
-
-#### Environment Variables
-
-| Variable | Description | Required | Default |
-| :------- | :---------- | :------- | :------ |
-| `PORT` | Server port | Yes | - |
-| `NODE_ENV` | Environment (`development`, `production`, `test`) | No | - |
-| `STRIP_RESPONSES` | Enable response transformation | No | `false` |
-| `VALIDATE_RESPONSES` | Enable response validation | No | `false` |
 
 ---
 
 ## 🏗️ Base Classes
 
 ### BaseController
-
 Provides helper methods for consistent response formatting.
-
-**Location:** `src/common/base.controller.ts`
-
-```typescript
-import { Controller, Get, Post } from '@nestjs/common';
-import { BaseController } from 'src/common/base.controller';
-import { ApiRes } from 'src/decorators/api-responses.decorator';
-
-@Controller('products')
-export class ProductsController extends BaseController {
-  
-  @Get()
-  @ApiRes('Get all products', ProductResponse, HttpStatus.OK, { isArray: true })
-  findAll() {
-    const products = this.productService.findAll();
-    // Returns: { success: true, message: 'Products fetched', data: [...] }
-    return this.respondOk(products, 'Products fetched');
-  }
-
-  @Post()
-  @ApiRes('Create product', ProductResponse, HttpStatus.CREATED)
-  create(@Body() dto: CreateProductDto) {
-    const product = this.productService.create(dto);
-    // Returns: { success: true, message: 'Created', data: {...} }
-    // HTTP Status: 201
-    return this.respondCreated(product, 'Product created successfully');
-  }
-}
-```
-
-**Available Methods:**
-
-| Method | HTTP Status | Description |
-| :----- | :---------- | :---------- |
-| `respondOk(data, message?)` | 200 | Standard success response |
-| `respondCreated(data, message?)` | 201 | Resource created response |
-
----
+- `this.respondOk(data, message?)` -> Returns 200 OK
+- `this.respondCreated(data, message?)` -> Returns 201 Created
 
 ### BaseService
+Provides pre-configured utilities:
+- `this.logger`: Context-aware logger (prefixed with service name and Request ID).
+- `this.eventEmitter`: Access to the global event emitter.
+- `this.emit(event)` / `this.emitAsync(event)`: Shortcut methods for events.
 
-Provides a pre-configured logger and event emitter.
-
-**Location:** `src/common/base.service.ts`
-
+**Logging Example:**
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { BaseService } from 'src/common/base.service';
-import { UserUpdatedEvent } from 'src/events/UserUpdatedEvent';
-
 @Injectable()
-export class ProductsService extends BaseService {
-  
-  // Logger is automatically initialized with service name as context
-  // this.logger = new AppLogger('ProductsService')
-  
-  findAll() {
-    this.logger.info('Fetching all products');
-    return this.products;
-  }
-
-  create(dto: CreateProductDto) {
-    const product = { ...dto, id: Date.now() };
-    
-    this.logger.info('Creating product', { product });
-    this.logger.debug({ dto }); // Debug-level logging
-    
-    this.emit(new ProductCreatedEvent(product.id));
-    
-    return product;
-  }
-
-  handleError(error: unknown) {
-    this.logger.error(error);
+export class AnalyticsService extends BaseService {
+  trackEvent(name: string) {
+    this.logger.info(`Tracking event: ${name}`, { timestamp: new Date() });
+    // Output: [2024-05-10 10:00:00] INFO [AnalyticsService] [REQ-123] Tracking event: login
   }
 }
 ```
-
-**Available Properties:**
-
-| Property | Type | Description |
-| :------- | :--- | :---------- |
-| `logger` | `AppLogger` | Pre-configured logger with service name as context |
-| `eventEmitter` | `EventEmitter2` | Injected event emitter |
-
-**Available Methods:**
-
-| Method | Description |
-| :----- | :---------- |
-| `emit(event)` | Emit event synchronously (fire and forget) |
-| `emitAsync(event)` | Emit event asynchronously (returns Promise) |
-| `onModuleInit()` | Logs service initialization automatically |
 
 ---
 
 ## 🎨 Custom Decorators
 
 ### @ApiRes
-
-Combines `@ApiOperation` and `@ApiSuccessResponse` with response metadata for the interceptor.
-
-**Location:** `src/decorators/api-responses.decorator.ts`
-
+Combines `@ApiOperation` and Swagger response documentation into one.
 ```typescript
-import { ApiRes } from 'src/decorators/api-responses.decorator';
-
-@Controller('items')
-export class ItemsController {
-  
-  @Get()
-  @ApiRes('Get all items', ItemResponse, HttpStatus.OK, { isArray: true })
-  findAll() { ... }
-
-  @Get(':id')
-  @ApiRes('Get item by ID', ItemResponse, HttpStatus.OK)
-  findOne(@Param('id') id: string) { ... }
-
-  @Post()
-  @ApiRes('Create item', ItemResponse, HttpStatus.CREATED)
-  create(@Body() dto: CreateItemDto) { ... }
-}
+@ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
 ```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `summary` | `string` | Operation summary for Swagger |
-| `responseType` | `Type<unknown>` | DTO class for response shape. Use `EmptyResponse` from `src/common/swagger` for endpoints with no data. |
-| `status` | `HttpStatus` | HTTP status code (default: `OK`) |
-| `options.isArray` | `boolean` | Whether response is an array |
-
----
 
 ### @ExposeApiProperty
-
-Combines `@Expose` (class-transformer), `@ApiProperty` (Swagger), and `@Type` (class-transformer) into a single decorator.
-
-**Location:** `src/decorators/expose-api-property.decorator.ts`
-
+Combines `@Expose` (class-transformer) and `@ApiProperty` (Swagger). Essential for the `ResponseInterceptor` to know which fields to return.
 ```typescript
-import { IsString, IsNumber } from 'class-validator';
-import { ExposeApiProperty } from 'src/decorators/expose-api-property.decorator';
-
 export class UserResponse {
   @ExposeApiProperty({ example: 1 })
-  @IsNumber()
   id: number;
-
-  @ExposeApiProperty({ example: 'John Doe' })
-  @IsString()
-  name: string;
-
-  // Nested object with type transformation
-  @ExposeApiProperty({ type: AddressResponse })
-  address: AddressResponse;
 }
 ```
 
-**Benefits:**
-- Single decorator instead of three
-- Automatic type transformation for nested DTOs
-- Properties are exposed in response transformation
-- Swagger documentation auto-generated
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| :-------- | :--- | :---------- |
-| `example` | `any` | Example value for Swagger |
-| `type` | `ClassConstructor` | Class for nested object transformation |
-| `...options` | `ApiPropertyOptions` | All standard ApiProperty options |
-
----
+### @SwrCache
+Enables the SWR caching strategy on a controller method.
+```typescript
+@SwrCache({ softTtlMs: 5000, hardTtlMs: 10000 })
+```
 
 ### @SkipResponseTransform
-
-Bypasses the global `ResponseInterceptor` for specific routes. Useful when returning raw data like files, buffers, or streams.
-
-**Location:** `src/decorators/skip-response-transform.decorator.ts`
-
-```typescript
-import { Controller, Get, Res } from '@nestjs/common';
-import { Response } from 'express';
-import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
-
-@Controller('files')
-export class FilesController {
-  @Get('download')
-  @SkipResponseTransform()
-  downloadFile(@Res() res: Response) {
-    const buffer = Buffer.from('file content');
-    res.set({
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': 'attachment; filename="data.txt"',
-    });
-    res.send(buffer);
-  }
-}
-```
-
----
-
-## 🔄 Response Interceptor
-
-The `ResponseInterceptor` automatically transforms and validates responses.
-
-**Location:** `src/interceptors/responses.interceptor.ts`
-
-### Features
-
-1. **Response Envelope Wrapping**: Wraps all responses in `{ success, message, data }`
-2. **Response Stripping**: Removes properties not decorated with `@Expose` (when `STRIP_RESPONSES=true`)
-3. **Response Validation**: Validates outgoing data against DTO (when `VALIDATE_RESPONSES=true`)
-
-### How It Works
-
-```typescript
-// Controller returns ApiResponse
-return this.respondOk(users, 'Users fetched');
-
-// Interceptor transforms to:
-{
-  success: true,
-  message: 'Users fetched',
-  data: users // transformed and validated
-}
-```
-
-### Response Stripping Example
-
-```typescript
-// Input DTO (from service)
-const user = { id: 1, name: 'John', password: 'secret123' };
-
-// Response DTO
-export class UserResponse {
-  @ExposeApiProperty() id: number;
-  @ExposeApiProperty() name: string;
-  // password is NOT exposed
-}
-
-// When STRIP_RESPONSES=true, output is:
-{
-  success: true,
-  message: 'OK',
-  data: { id: 1, name: 'John' }  // password stripped!
-}
-```
-
-### Configuration
-
-Enable in `.env`:
-
-```env
-STRIP_RESPONSES=true    # Enable property stripping
-VALIDATE_RESPONSES=true # Enable response validation
-```
+Bypasses the global response wrapper. Use this for raw data like file downloads or buffers.
 
 ---
 
 ## 📝 Logging System
 
-This starter uses a **Winston-based logger** for:
+### Winston-based Logging
+NestJS internal logs and service logs are routed through **Winston**. 
+- Key file: `src/common/logger.service.ts`
+- Formatted output: `[TIMESTAMP] LEVEL [CONTEXT] MESSAGE`
 
-- NestJS framework logs
-- Service logs (via `BaseService`)
-- HTTP request lifecycle logs (via middleware)
-
-**Location:** `src/common/logger.service.ts`
-
-### Features
-
-- Multiple log levels
-- Metadata support
-- Context-aware logging (service name)
-
-### Usage
+#### 🪵 Using Logger Outside Base Classes
+If your class does not extend `BaseService` (e.g., a standalone utility or helper), you can still use the `AppLogger` manually:
 
 ```typescript
-import { AppLogger } from 'src/common/logger.service';
+import { AppLogger, winstonLogger } from 'src/common/logger.service';
 
-@Injectable()
-export class MyService {
-  private readonly logger = new AppLogger(MyService.name);
-  // Or extend BaseService to get this.logger automatically
+export class DataHelper {
+  private readonly logger = new AppLogger(winstonLogger, 'DataHelper');
 
-  doSomething() {
-    this.logger.info('Processing started');
-    this.logger.debug({ userId: 123, action: 'login' });
-    this.logger.warn('Rate limit approaching');
-    this.logger.error(new Error('Something failed'));
+  parse() {
+    this.logger.info('Starting data parsing');
+    try {
+      // ... logic
+    } catch (err) {
+      this.logger.error('Parsing failed', err);
+    }
   }
 }
 ```
 
-### Available Methods
+### Request ID Traceability
+Every request is assigned a unique **Request ID** via middleware and `AsyncLocalStorage`. This ID is automatically prefixed to every log line generated during that request.
 
-| Method | Description | Output Level |
-| :----- | :---------- | :----------- |
-| `info(message, meta?)` | Informational messages | `LOG` |
-| `warn(message)` | Warning messages | `WARN` |
-| `error(err)` | Error objects | `ERROR` |
-
-### Winston-based Logging (Implemented)
-
-This starter uses **Winston** as the underlying logger:
-
-- NestJS internal logs are routed through `NestWinstonLogger` (passed into `NestFactory.create`).
-- Services extending `BaseService` get an `AppLogger` that writes into the shared `winstonLogger`.
-
-Key files:
-
-- `src/common/logger.service.ts`
-  - `winstonLogger`: the configured Winston logger
-  - `NestWinstonLogger`: implements NestJS `LoggerService`
-  - `AppLogger`: small wrapper used by `BaseService`
-
-### Request-scoped Request ID in Logs
-
-When the request logging middleware is enabled (it is applied globally in `AppModule`), each request gets a short `requestId` and that ID is automatically included in service logs:
-
-- Request ID is stored using `AsyncLocalStorage` in `src/common/request-logging/request.context.ts`.
-- Incoming/outgoing HTTP lifecycle logs are emitted by `src/common/request-logging/request.middleware.ts`.
-- The `AppLogger` pulls `requestId` from `getRequestId()` and prefixes messages.
-
-Endpoints logs look like:
-
-- `[ABC123] Incoming Request GET /users`
-- `[ABC123] Request Completed GET /users 200 12ms`
-
-Service logs look like:
-
-- `[ABC123] Fetching all products`
+**Log Example:**
+```text
+[2024-05-10 12:00:00] INFO [UsersService] [REQ-ABC123] Fetching user data...
+```
 
 ---
 
 ## 👨‍💻 Development Guide
 
 ### Database & ORM
-
-This boilerplate intentionally **does not include an ORM** (like TypeORM, Prisma, or Sequelize) out of the box. This keeps the starter lightweight and unopinionated, allowing you to easily integrate the database solution that best fits your project requirements.
-
-### Security & CORS
-
-CORS is disabled by default but can be enabled in `src/main.ts`:
-
-```typescript
-// src/main.ts
-app.enableCors({
-  origin: configService.getValue("FRONTEND_URL") || 'http://localhost:3000',
-  credentials: true
-});
-```
+This boilerplate is **ORM-agnostic**. It does not include an ORM (like TypeORM or Prisma) by default, allowing you to choose the best fit for your project.
 
 ### Creating a New Module
-
-1. Generate the resource using NestCLI:
-
-```bash
-nest g resource modules/products
-```
-
+1. Generate the module: `nest g resource modules/products`
 2. Create separate files for:
-   - Input DTOs (`products.dto.ts`)
-   - Response DTOs (`product.responses.ts`)
-   - Controller (`products.controller.ts`)
-   - Service (`products.service.ts`)
-   - Module (`products.module.ts`)
-
-3. Extend base classes:
-
-```typescript
-// Controller
-@Controller('products')
-export class ProductsController extends BaseController {
-  constructor(private readonly productsService: ProductsService) {
-    super();
-  }
-  // ...
-}
-
-// Service
-@Injectable()
-export class ProductsService extends BaseService {
-  // this.logger and this.eventEmitter available
-  // ...
-}
-```
-
-### Full Module Example
-
-```typescript
-// products.dto.ts (Input)
-import { IsString, IsNumber, IsOptional } from 'class-validator';
-import { ExposeApiProperty } from 'src/decorators/expose-api-property.decorator';
-
-export class CreateProductDto {
-  @ExposeApiProperty({ example: 'Widget' })
-  @IsString()
-  name: string;
-
-  @ExposeApiProperty({ example: 99.99 })
-  @IsNumber()
-  price: number;
-
-  @ExposeApiProperty({ example: 'A useful widget' })
-  @IsString()
-  @IsOptional()
-  description?: string;
-}
-
-// product.responses.ts (Output)
-import { IsString, IsNumber } from 'class-validator';
-import { ExposeApiProperty } from 'src/decorators/expose-api-property.decorator';
-
-export class ProductResponse {
-  @ExposeApiProperty({ example: 1 })
-  @IsNumber()
-  id: number;
-
-  @ExposeApiProperty({ example: 'Widget' })
-  @IsString()
-  name: string;
-
-  @ExposeApiProperty({ example: 99.99 })
-  @IsNumber()
-  price: number;
-}
-
-// products.controller.ts
-@Controller('products')
-@ApiTags('products')
-export class ProductsController extends BaseController {
-  constructor(private readonly productsService: ProductsService) {
-    super();
-  }
-
-  @Get()
-  @ApiRes('Get all products', ProductResponse, HttpStatus.OK, { isArray: true })
-  findAll() {
-    const products = this.productsService.findAll();
-    return this.respondOk(products, 'Products fetched successfully');
-  }
-
-  @Post()
-  @ApiRes('Create product', ProductResponse, HttpStatus.CREATED)
-  create(@Body() dto: CreateProductDto) {
-    const product = this.productsService.create(dto);
-    return this.respondCreated(product, 'Product created');
-  }
-}
-
-// products.service.ts
-@Injectable()
-export class ProductsService extends BaseService {
-  private products: ProductResponse[] = [];
-
-  findAll() {
-    this.logger.info('Fetching all products');
-    return this.products;
-  }
-
-  create(dto: CreateProductDto) {
-    const product = { ...dto, id: Date.now() };
-    this.products.push(product);
-    this.logger.info('Product created', { productId: product.id });
-    return product;
-  }
-}
-```
+   - `product.dto.ts` (Input validation)
+   - `product.responses.ts` (Output transformation)
+3. Extend `BaseController` and `BaseService`.
+4. Use `@ApiRes` and `@ExposeApiProperty` for documentation and transformation.
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Unit tests
-pnpm run test
-
-# Unit tests with watch mode
-pnpm run test:watch
-
-# E2E tests
-pnpm run test:e2e
-
-# Test coverage
-pnpm run test:cov
-
-# Debug tests
-pnpm run test:debug
+pnpm run test        # Unit tests
+pnpm run test:e2e    # End-to-end tests
+pnpm run test:cov    # Coverage report
 ```
-
-Test configuration files:
-- `test/jest.json` - Unit test configuration
-- `test/jest-e2e.json` - E2E test configuration
-- `.env.test` - Environment variables for testing
 
 ---
 
@@ -1008,58 +437,24 @@ Test configuration files:
 | Script | Description |
 | :----- | :---------- |
 | `build` | Compiles TypeScript to `dist/` |
-| `format` | Formats code using Prettier |
-| `start` | Starts the app (no watch) |
-| `start:dev` / `dev` | Starts in watch mode (development) |
-| `start:debug` | Starts with debugger attached |
+| `dev` | Starts in watch mode (development) |
 | `start:prod` | Runs compiled app from `dist/main.js` |
 | `lint` | Lints and fixes code using ESLint |
-| `test` | Runs unit tests |
-| `test:watch` | Runs tests in watch mode |
-| `test:cov` | Runs tests with coverage report |
-| `test:e2e` | Runs E2E tests |
-| `test:debug` | Runs tests with debugger |
+| `format` | Formats code using Prettier |
 
 ---
 
 ## 🔐 Environment Variables
 
-Create a `.env` file with the following variables:
-
-```env
-# Required
-PORT=9000
-
-# Optional
-NODE_ENV=development
-STRIP_RESPONSES=true
-VALIDATE_RESPONSES=true
-BASE_URL=http://localhost:9000
-```
+Create a `.env` file based on `.env.example`:
 
 | Variable | Description | Required | Default |
 | :------- | :---------- | :------- | :------ |
-| `PORT` | HTTP server port | ✅ Yes | - |
-| `NODE_ENV` | Environment (`development`, `production`, `test`) | No | - |
-| `STRIP_RESPONSES` | Enable response property stripping | No | `false` |
-| `VALIDATE_RESPONSES` | Enable response validation | No | `false` |
-| `BASE_URL` | Used to set the Swagger `server` URL in the generated spec | No | `http://localhost:<PORT>` |
-
----
-
-## 🆔 Request Logging (Request ID)
-
-This starter applies a global middleware that:
-
-- Generates a short request ID for each request.
-- Stores it in `AsyncLocalStorage` so it can be accessed anywhere in the same request lifecycle.
-- Logs incoming and completed HTTP requests using Winston.
-
-Implementation:
-
-- Middleware: `src/common/request-logging/request.middleware.ts`
-- ALS store: `src/common/request-logging/request.context.ts`
-- Global wiring: `AppModule.configure()` applies `RequestMiddleware` to `forRoutes('*')`
+| `PORT` | HTTP server port | ✅ Yes | `9000` |
+| `NODE_ENV` | `development`, `production`, `test` | No | `development` |
+| `STRIP_RESPONSES` | Removes fields not marked with `@Expose` | No | `false` |
+| `VALIDATE_RESPONSES` | Validates outgoing data against DTO | No | `false` |
+| `BASE_URL` | Used for Swagger server URL | No | `http://localhost:<PORT>` |
 
 ---
 

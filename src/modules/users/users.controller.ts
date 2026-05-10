@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-
+import fs from 'fs/promises'
 import { ApiRes } from 'src/decorators/api-responses.decorator';
 import { BaseController } from '../../common/base.controller';
 import { UserResponse } from './user.responses';
@@ -10,6 +10,7 @@ import { EmptyResponse } from 'src/common/swagger';
 import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
 import { type Response } from 'express';
 import { SwrCache } from '../cache/decorators/swrCache.decorators';
+import { getAssetPath } from 'src/common/get-assets';
 
 @ApiTags('Users')
 @Controller('users')
@@ -45,16 +46,14 @@ export class UsersController extends BaseController {
 
   @Get('/buffer')
   @SkipResponseTransform()
-  getBuffer(@Res() res: Response) {
-    const users = this.userService.getUsers();
+  async getBuffer(@Res() res: Response) {
 
-    const buffer = Buffer.from(JSON.stringify(users, null, 2));
+    const filePath = getAssetPath('dummy-assets.txt');
 
-    res.set({
-      'Content-Type': 'application/json',
-      'Content-Disposition': 'attachment; filename="users.json"',
-    });
+    const buffer = await fs.readFile(filePath);
 
+    res.contentType('text/plain');
+    res.attachment('sample.txt');
     res.send(buffer);
   }
 

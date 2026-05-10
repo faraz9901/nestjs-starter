@@ -86,67 +86,67 @@ export class ApiError {
 
 
 // Helper namespace for throwing errors easily
-export namespace HTTPEXCEPTION {
+export class HTTPEXCEPTION {
 
     /* ---------- 400 ---------- */
-    export const BAD_REQUEST = (
+    static BAD_REQUEST = (
         message = 'Bad Request',
         code: ErrorCode,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.BAD_REQUEST, details);
 
-    export const VALIDATION = (
+    static VALIDATION = (
         message = 'Validation Failed',
         details?: any,
     ) => new ApiError(message, ErrorCode.VALIDATION_ERROR, HttpStatus.BAD_REQUEST, details);
 
     /* ---------- 401 ---------- */
-    export const UNAUTHORIZED = (
+    static UNAUTHORIZED = (
         message = 'Unauthorized',
         code: ErrorCode = ErrorCode.UNAUTHORIZED,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.UNAUTHORIZED, details);
 
-    export const TOKEN_EXPIRED = (details?: any) =>
+    static TOKEN_EXPIRED = (details?: any) =>
         new ApiError('Token expired', ErrorCode.TOKEN_EXPIRED, HttpStatus.UNAUTHORIZED, details);
 
     /* ---------- 403 ---------- */
-    export const FORBIDDEN = (
+    static FORBIDDEN = (
         message = 'Forbidden',
         code: ErrorCode = ErrorCode.FORBIDDEN,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.FORBIDDEN, details);
 
     /* ---------- 404 ---------- */
-    export const NOT_FOUND = (
+    static NOT_FOUND = (
         message = 'Resource not found',
         code: ErrorCode = ErrorCode.RESOURCE_NOT_FOUND,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.NOT_FOUND, details);
 
     /* ---------- 409 ---------- */
-    export const CONFLICT = (
+    static CONFLICT = (
         message = 'Conflict',
         code: ErrorCode = ErrorCode.RESOURCE_CONFLICT,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.CONFLICT, details);
 
     /* ---------- 422 ---------- */
-    export const UNPROCESSABLE = (
+    static UNPROCESSABLE = (
         message = 'Unprocessable entity',
         code: ErrorCode = ErrorCode.BUSINESS_RULE_VIOLATION,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.UNPROCESSABLE_ENTITY, details);
 
     /* ---------- 500 ---------- */
-    export const INTERNAL = (
+    static INTERNAL = (
         message = 'Internal Server Error',
         code: ErrorCode = ErrorCode.INTERNAL_ERROR,
         details?: any,
     ) => new ApiError(message, code, HttpStatus.INTERNAL_SERVER_ERROR, details);
 
     /* ---------- 503 ---------- */
-    export const SERVICE_UNAVAILABLE = (
+    static SERVICE_UNAVAILABLE = (
         message = 'Service unavailable',
         code: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,
         details?: any,
