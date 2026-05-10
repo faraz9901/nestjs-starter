@@ -9,6 +9,9 @@ import { NestWinstonLogger, winstonLogger } from './common/logger.service';
 import { ErrorBody, SuccessBody } from './common/swagger';
 import { configService } from './config/config.service';
 import { ResponseInterceptor } from './interceptors/responses.interceptor';
+import { json } from 'express';
+import compression from 'compression';
+import helmet from 'helmet';
 
 // Application entrypoint: creates the Nest app and wires up global behavior
 async function bootstrap() {
@@ -79,6 +82,16 @@ async function bootstrap() {
       }),
     );
   }
+
+
+  //Sensible defaults for security and performance - customize as needed for your project
+  app.use(compression());
+  app.use(helmet());
+  app.use(json({ limit: '1mb' }));
+
+
+
+  app.enableShutdownHooks();
 
   // Enable CORS (customize allowed origins via configService and uncomment below)
   // app.enableCors({

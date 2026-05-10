@@ -5,7 +5,7 @@ A production-ready **NestJS boilerplate** designed for scalability, consistency,
 ---
 
 ## 📖 Table of Contents
-
+- [✨ Why this Starter exists](#-starter-exists)
 - [✨ Features Overview](#-features-overview)
 - [🛠 Prerequisites](#-prerequisites)
 - [🚀 Quick Start](#-quick-start)
@@ -17,6 +17,7 @@ A production-ready **NestJS boilerplate** designed for scalability, consistency,
   - [Documentation (Swagger, Scalar, ReDoc)](#documentation-swagger-scalar-redoc)
   - [🔄 SWR Cache System](#-swr-cache-system)
   - [📁 Static Assets & File Management](#-static-assets--file-management)
+  - [🏥 Health Check](#-health-check)
   - [Event-Driven Architecture](#event-driven-architecture)
   - [Configuration Management](#configuration-management)
 - [🏗️ Base Classes](#-base-classes)
@@ -27,10 +28,14 @@ A production-ready **NestJS boilerplate** designed for scalability, consistency,
   - [@ExposeApiProperty](#exposeapiproperty)
   - [@SwrCache](#swrcache)
   - [@SkipResponseTransform](#skipresponsetransform)
+- [🛡️ Security & Performance](#-security--performance)
 - [🔄 Response Interceptor](#-response-interceptor)
 - [📝 Logging System](#-logging-system)
   - [Winston Logging](#winston-based-logging)
   - [Request ID Traceability](#request-scoped-request-id-in-logs)
+  - [⏱️ Timing Metrics](#timing-metrics)
+- [🚦 Rate Limiting](#-rate-limiting)
+- [🛑 Graceful Shutdown](#-graceful-shutdown)
 - [👨‍💻 Development Guide](#-development-guide)
   - [Database & ORM](#database--orm)
   - [Security & CORS](#security--cors)
@@ -42,6 +47,32 @@ A production-ready **NestJS boilerplate** designed for scalability, consistency,
 
 ---
 
+## Why This Starter Exists
+
+Most NestJS starters are either:
+- too minimal to save real setup time
+- or too opinionated and framework-like
+
+This starter focuses only on production infrastructure concerns:
+- standardized responses
+- logging
+- request tracing
+- SWR caching
+- validation
+- documentation
+- assets
+- error handling
+
+without forcing:
+- ORM choices
+- authentication systems
+- architectural patterns
+
+
+
+---
+
+
 ## ✨ Features Overview
 
 | Feature | Description |
@@ -51,10 +82,15 @@ A production-ready **NestJS boilerplate** designed for scalability, consistency,
 | **🚨 Centralized Error Handling** | Global Exception Filter with comprehensive error codes and consistent formatting. |
 | **📚 3x API Documentation** | Swagger UI, Scalar Reference, and ReDoc all served from one OpenAPI spec. |
 | **⚡ SWR Cache System** | High-performance Stale-While-Revalidate caching with distributed locking logic. |
+| **🚦 Rate Limiting** | Built-in protection against brute-force attacks (Throttler). |
+| **🛡️ Security Hardening** | Helmet (headers), Compression (performance), and JSON body limits. |
+| **🏥 Health Checks** | Built-in health check endpoint for monitoring. |
 | **📣 Event-Driven Architecture** | Built-in EventEmitter2 integration for decoupled communication. |
 | **⚙️ Type-Safe Config** | Environment variable management with validation and environment mode helpers. |
 | **🏗️ Base Classes** | `BaseController` and `BaseService` with built-in logging and event helpers. |
 | **🪵 Pro Logging** | Winston-powered logger with per-request context and unique Request IDs. |
+| **🛑 Graceful Shutdown** | Ensures cleanup and safe disconnection on app termination. |
+| **🐳 Docker Ready** | Production-optimized Dockerfile and docker-compose setup. |
 | **✨ Custom Decorators** | Clean, maintainable code with `@ApiRes`, `@SwrCache`, and `@ExposeApiProperty`. |
 
 ---
@@ -81,7 +117,7 @@ pnpm install
 cp .env.example .env
 ```
 
-### 2. Run the Application
+### 🚀 Running the Application
 ```bash
 # Development mode (with hot-reload)
 pnpm run dev
@@ -90,6 +126,13 @@ pnpm run dev
 pnpm run build
 pnpm run start:prod
 ```
+
+### 🐳 Docker Setup
+Run the entire stack (including any services you add) with one command:
+```bash
+docker-compose up --build
+```
+The app will be available at `http://localhost:9000`.
 
 The server will start on `http://localhost:9000`.
 
@@ -112,6 +155,7 @@ src/
 │   ├── get-assets.ts            # 📁 Asset path resolution helper
 │   ├── logger.service.ts        # Winston logger + AppLogger wrapper
 │   ├── request-logging/          # Request ID + HTTP lifecycle logging
+│   ├── shuttingdown-hook.ts     # 🛑 Graceful shutdown handler
 │   └── swagger.ts               # Swagger helper types & SuccessBody model
 ├── config/
 │   └── config.service.ts        # Type-safe environment configuration
@@ -291,6 +335,13 @@ export class UsersService {
 
 ---
 
+### 🏥 Health Check
+
+By default, the root path (`/`) acts as the health check endpoint. It returns the server status and basic info to monitoring tools.
+- **To change the path**: Update the `@Get()` route in `src/app.controller.ts`.
+
+---
+
 ### Event-Driven Architecture
 
 Built-in support for `@nestjs/event-emitter`.
@@ -370,6 +421,17 @@ Bypasses the global response wrapper. Use this for raw data like file downloads 
 
 ---
 
+## 🛡️ Security & Performance
+
+This kit includes production-ready defaults for security and performance in `main.ts`:
+
+- **Helmet**: Secures the app by setting various HTTP response headers.
+- **Compression**: Gzip compression to decrease the size of the response body.
+- **JSON Body Limits**: Incoming JSON payloads are limited to `1mb` to prevent large-body attacks.
+- **X-Request-Id Header**: Every response includes an `X-Request-Id` header for frontend traceability and debugging.
+
+---
+
 ## 📝 Logging System
 
 ### Winston-based Logging
@@ -404,6 +466,34 @@ Every request is assigned a unique **Request ID** via middleware and `AsyncLocal
 ```text
 [2024-05-10 12:00:00] INFO [UsersService] [REQ-ABC123] Fetching user data...
 ```
+
+### ⏱️ Timing Metrics
+The request logging middleware automatically tracks and logs the duration of every HTTP request:
+```text
+[REQ-ABC123] Request Completed GET /users 200 12ms
+```
+
+---
+
+## 🚦 Rate Limiting
+
+We use `@nestjs/throttler` to protect against brute-force and DoS attacks.
+- **Default Config**: 20 requests per minute per IP (Configurable in `app.module.ts`).
+
+#### Usage:
+All routes are protected by default. Use decorators for specific overrides:
+- **`@SkipThrottle()`**: Completely bypass rate limiting for a route.
+- **`@Throttle({ default: { limit: 5, ttl: 60000 } })`**: Set custom limits for a route.
+
+> [!TIP]
+> For horizontal scaling, use a **Redis storage adapter** to share state across instances. Refer to the [NestJS Throttler Docs](https://docs.nestjs.com/techniques/throttling) for more.
+
+---
+
+## 🛑 Graceful Shutdown
+
+The kit includes a `ShuttingDownHook` (`src/common/shuttingdown-hook.ts`) and has shutdown hooks enabled in `main.ts`.
+- **How it works**: When the app receives a signal (SIGTERM, SIGINT), it executes `onApplicationShutdown`, allowing you to safely close database connections or finish pending tasks.
 
 ---
 
