@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
-import { BaseService } from "src/common/base.service";
-import { UserUpdatedEvent } from "src/events/UserUpdatedEvent";
+import { BaseService } from "@/common/base.service";
+import { UserUpdatedEvent } from "@/events/UserUpdatedEvent";
 import { UserDto } from "./users.dto";
 import { SwrCacheService } from "../cache/services/cache.service";
 

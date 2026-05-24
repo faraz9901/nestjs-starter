@@ -1,16 +1,16 @@
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import fs from 'fs/promises'
-import { ApiRes } from 'src/decorators/api-responses.decorator';
+import { ApiRes } from '@/decorators/api-responses.decorator';
 import { BaseController } from '../../common/base.controller';
 import { UserResponse } from './user.responses';
 import { UserDto } from './users.dto';
 import { UsersService } from './users.service';
-import { EmptyResponse } from 'src/common/swagger';
-import { SkipResponseTransform } from 'src/decorators/skip-response-transform.decorator';
+import { EmptyResponse } from '@/common/swagger';
+import { SkipResponseTransform } from '@/decorators/skip-response-transform.decorator';
 import { type Response } from 'express';
 import { SwrCache } from '../cache/decorators/swrCache.decorators';
-import { getAssetPath } from 'src/common/get-assets';
+import { getAssetPath } from '@/common/get-assets';
 
 @ApiTags('Users')
 @Controller('users')

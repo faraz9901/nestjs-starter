@@ -1,12 +1,6 @@
-import {
-    ArgumentsHost,
-    Catch,
-    ExceptionFilter,
-    HttpException,
-    HttpStatus,
-} from '@nestjs/common';
+import { configService } from '@/config/config.service';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
-import { configService } from 'src/config/config.service';
 
 export enum ErrorCode {
     /* =======================

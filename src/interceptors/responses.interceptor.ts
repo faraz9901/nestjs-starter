@@ -7,11 +7,11 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { map } from 'rxjs/operators';
-import { ApiResponse } from 'src/common/base.controller';
-import { ApiError } from 'src/common/errors';
-import { configService } from 'src/config/config.service';
-import { RESPONSE_TYPE_KEY } from 'src/decorators/api-responses.decorator';
-import { SKIP_RESPONSE_TRANSFORM_KEY } from 'src/decorators/skip-response-transform.decorator';
+import { ApiResponse } from '@/common/base.controller';
+import { ApiError } from '@/common/errors';
+import { configService } from '@/config/config.service';
+import { RESPONSE_TYPE_KEY } from '@/decorators/api-responses.decorator';
+import { SKIP_RESPONSE_TRANSFORM_KEY } from '@/decorators/skip-response-transform.decorator';
 
 
 function validateResponse(dto: object) {

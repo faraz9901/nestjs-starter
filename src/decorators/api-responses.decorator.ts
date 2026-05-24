@@ -1,6 +1,6 @@
 import { applyDecorators, HttpStatus, SetMetadata, Type } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
-import { ApiSuccessResponse } from 'src/common/swagger';
+import { ApiSuccessResponse } from '@/common/swagger';
 
 export const RESPONSE_TYPE_KEY = 'responseType';
 

@@ -1,5 +1,5 @@
 import { IsNumber, IsString } from 'class-validator';
-import { ExposeApiProperty } from 'src/decorators/expose-api-property.decorator';
+import { ExposeApiProperty } from '@/decorators/expose-api-property.decorator';
 
 export class UserDto {
   @ExposeApiProperty({ example: 1 })
