@@ -1,6 +1,7 @@
+import { afterAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MemoryCacheStorage } from './memory.storage';
-import { CacheModule } from '../cache.module';
+
 
 describe('MemoryCacheStorage', () => {
     let service: MemoryCacheStorage;
@@ -59,18 +60,21 @@ describe('MemoryCacheStorage', () => {
                 await service.set(
                     'user:1',
                     { name: 'john' },
-                    100,
+                    2500,
                 );
+
+
+                await new Promise((r) => setTimeout(r, 1000));
 
                 // should exist immediately
                 const before = await service.get('user:1');
-
 
                 expect(before).toEqual({
                     name: 'john',
                 });
 
-                await new Promise((r) => setTimeout(r, 150));
+
+                await new Promise((r) => setTimeout(r, 2500));
 
                 const after = await service.get('user:1');
 

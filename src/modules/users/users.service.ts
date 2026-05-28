@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
 import { BaseService } from "@/common/base.service";
 import { UserUpdatedEvent } from "@/events/UserUpdatedEvent";
-import { UserDto } from "./users.dto";
+import { Injectable } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import { SwrCacheService } from "../cache/services/cache.service";
+import { UserDto } from "./users.dto";
 
 @Injectable()
 export class UsersService extends BaseService {
@@ -16,7 +16,6 @@ export class UsersService extends BaseService {
 
     async getUsers() {
 
-
         const cache = await this.cacheService.get('users');
 
         if (cache.type === "hit") {
@@ -28,8 +27,6 @@ export class UsersService extends BaseService {
         const users: UserDto[] = [
             { id: 1, name: 'John Doe', password: "StrongPassword" },
         ];
-
-        this.logger.info('Get all users', { users });
 
         await this.cacheService.set('users', users, 1 * 60 * 1000, 2 * 60 * 1000);
 

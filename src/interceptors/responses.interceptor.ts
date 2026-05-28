@@ -1,17 +1,19 @@
+import { ApiResponse } from '@/common/base.controller';
+import { ApiError, ErrorCode } from '@/common/errors';
+import { configService } from '@/config/config.service';
+import { RESPONSE_OPTIONS_KEY, RESPONSE_TYPE_KEY, ResponseOptions } from '@/decorators/api-responses.decorator';
+import { SKIP_RESPONSE_TRANSFORM_KEY } from '@/decorators/skip-response-transform.decorator';
 import {
     CallHandler,
     ExecutionContext,
+    HttpStatus,
     Injectable,
     NestInterceptor,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { map } from 'rxjs/operators';
-import { ApiResponse } from '@/common/base.controller';
-import { ApiError } from '@/common/errors';
-import { configService } from '@/config/config.service';
-import { RESPONSE_TYPE_KEY } from '@/decorators/api-responses.decorator';
-import { SKIP_RESPONSE_TRANSFORM_KEY } from '@/decorators/skip-response-transform.decorator';
+
 
 
 function validateResponse(dto: object) {
@@ -21,7 +23,12 @@ function validateResponse(dto: object) {
     });
 
     if (errors.length > 0) {
-        throw new ApiError(`Response validation failed: ${JSON.stringify(errors)}`);
+        throw new ApiError(
+            'Response validation failed',
+            ErrorCode.INTERNAL_ERROR,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            configService.isProduction() ? null : errors,
+        );
     }
 }
 
@@ -31,8 +38,17 @@ export class ResponseInterceptor implements NestInterceptor {
         const res = context.switchToHttp().getResponse();
         const handler = context.getHandler();
 
-        const strip = configService.stripResponses();
-        const validate = configService.validateResponses();
+        const meta = Reflect.getMetadata(RESPONSE_TYPE_KEY, handler);
+
+        const responseOptions: ResponseOptions = Reflect.getMetadata(RESPONSE_OPTIONS_KEY, handler) ?? {};
+
+        // Global defaults
+        const globalStrip = configService.stripResponses();
+        const globalValidate = configService.validateResponses();
+
+        // Endpoint overrides
+        const strip = responseOptions.strip ?? globalStrip;
+        const validate = responseOptions.validate ?? globalValidate;
 
         return next.handle().pipe(
             map((value) => {
@@ -49,12 +65,9 @@ export class ResponseInterceptor implements NestInterceptor {
 
                     let data = value.data;
 
-                    const meta = Reflect.getMetadata(RESPONSE_TYPE_KEY, handler);
-
                     if (meta?.type && value.data && strip) {
-
                         if (meta.isArray && Array.isArray(value.data)) {
-                            data = value.data.map(item => {
+                            data = value.data.map((item) => {
                                 const dto = plainToInstance(meta.type, item, {
                                     excludeExtraneousValues: true,
                                 });
@@ -65,7 +78,6 @@ export class ResponseInterceptor implements NestInterceptor {
 
                                 return dto;
                             });
-
                         } else {
                             const dto = plainToInstance(meta.type, value.data, {
                                 excludeExtraneousValues: true,
@@ -91,7 +103,7 @@ export class ResponseInterceptor implements NestInterceptor {
                     message: 'OK',
                     data: value,
                 };
-            })
+            }),
         );
     }
 }

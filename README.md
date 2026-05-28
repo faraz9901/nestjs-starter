@@ -419,6 +419,88 @@ Enables the SWR caching strategy on a controller method.
 ### @SkipResponseTransform
 Bypasses the global response wrapper. Use this for raw data like file downloads or buffers.
 
+### @ResponseOptions
+
+By default, response transformation and validation behavior are controlled globally through environment variables:
+
+| Variable             | Description                                  | Default |
+| :------------------- | :------------------------------------------- | :------ |
+| `STRIP_RESPONSES`    | Removes properties not marked with `@Expose` or `@ExposeApiProperty` | `false` |
+| `VALIDATE_RESPONSES` | Validates outgoing DTO responses (need class-validator decorators to work)            | `false` |
+
+However, there are cases where you may want to enforce these behaviors for specific endpoints regardless of the environment configuration.
+
+The `@ResponseOptions()` decorator allows per-endpoint overrides for:
+
+* response stripping
+* DTO validation
+
+---
+
+#### Basic Usage
+
+```typescript
+@Get(':id')
+@ApiRes('Get user', UserResponse)
+@ResponseOptions({
+  strip: true,
+  validate: true,
+})
+async findOne(@Param('id') id: string) {
+  return this.respondOk(await this.userService.findById(id));
+}
+```
+
+---
+
+#### Available Options
+
+| Option     | Description                                        |
+| :--------- | :------------------------------------------------- |
+| `strip`    | Removes fields not decorated with `@Expose`        |
+| `validate` | Validates transformed DTOs using `class-validator` |
+
+---
+
+#### Example: Force Validation in Production
+
+Even if global validation is disabled:
+
+```env
+VALIDATE_RESPONSES=false
+```
+
+You can still enforce validation for sensitive endpoints:
+
+```typescript
+@ResponseOptions({
+  validate: true,
+})
+```
+
+This is useful for:
+
+* public APIs
+* payment responses
+* critical DTO contracts
+* debugging serialization issues
+
+---
+
+#### Example: Disable Validation for Heavy Endpoints
+
+```typescript
+@ResponseOptions({
+  validate: false,
+})
+```
+
+Useful for:
+
+* large datasets
+* internal admin endpoints
+* performance-sensitive routes
+
 ---
 
 ## 🛡️ Security & Performance

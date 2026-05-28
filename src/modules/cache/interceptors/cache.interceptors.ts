@@ -1,15 +1,15 @@
 // interceptors/swr-cache.interceptor.ts
 import {
+    CallHandler,
+    ExecutionContext,
     Injectable,
     NestInterceptor,
-    ExecutionContext,
-    CallHandler,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { of } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { SwrCacheService } from '../services/cache.service';
 import { SWR_CACHE_KEY } from '../decorators/swrCache.decorators';
+import { SwrCacheService } from '../services/cache.service';
 
 @Injectable()
 export class SwrCacheInterceptor implements NestInterceptor {
@@ -17,8 +17,6 @@ export class SwrCacheInterceptor implements NestInterceptor {
         private reflector: Reflector,
         private cache: SwrCacheService,
     ) { }
-
-    // interceptors/swr-cache.interceptor.ts
 
     async intercept(context: ExecutionContext, next: CallHandler) {
         const req = context.switchToHttp().getRequest();
@@ -28,12 +26,9 @@ export class SwrCacheInterceptor implements NestInterceptor {
         if (!options) return next.handle();
 
         // 🔥 SUPPORT ASYNC KEY
-        const key = options.key
-            ? await options.key(req)
-            : `${req.method}:${req.route.path}:${JSON.stringify(req.query)}`;
+        const key = options.key ? await options.key(req) : `${req.method}:${req.route.path}:${JSON.stringify(req.query)}`;
 
         const result = await this.cache.get(key);
-
 
         // ✅ HIT
         if (result.type === 'hit') {

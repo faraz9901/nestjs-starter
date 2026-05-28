@@ -3,8 +3,7 @@ import { LRUCache } from 'lru-cache';
 import { CacheStorage } from '../types/storage.types';
 
 @Injectable()
-export class MemoryCacheStorage
-    implements CacheStorage {
+export class MemoryCacheStorage implements CacheStorage {
     private cache = new LRUCache<string, any>({
         max: 500,
         ttl: 1000 * 60 * 5,

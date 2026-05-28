@@ -1,16 +1,16 @@
+import { getAssetPath } from '@/common/get-assets';
+import { EmptyResponse } from '@/common/swagger';
+import { ApiRes, ResponseOptions } from '@/decorators/api-responses.decorator';
+import { SkipResponseTransform } from '@/decorators/skip-response-transform.decorator';
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import fs from 'fs/promises'
-import { ApiRes } from '@/decorators/api-responses.decorator';
+import { type Response } from 'express';
+import fs from 'fs/promises';
 import { BaseController } from '../../common/base.controller';
+import { SwrCache } from '../cache/decorators/swrCache.decorators';
 import { UserResponse } from './user.responses';
 import { UserDto } from './users.dto';
 import { UsersService } from './users.service';
-import { EmptyResponse } from '@/common/swagger';
-import { SkipResponseTransform } from '@/decorators/skip-response-transform.decorator';
-import { type Response } from 'express';
-import { SwrCache } from '../cache/decorators/swrCache.decorators';
-import { getAssetPath } from '@/common/get-assets';
 
 @ApiTags('Users')
 @Controller('users')
@@ -19,6 +19,7 @@ export class UsersController extends BaseController {
   constructor(private readonly userService: UsersService) { super(); }
 
   @Get()
+  @ResponseOptions({ strip: true, validate: true })
   @ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
   @SwrCache({
     key: (req) => `${req.method}:${req.url}`,
