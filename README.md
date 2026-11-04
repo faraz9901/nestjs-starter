@@ -598,8 +598,6 @@ This boilerplate is **ORM-agnostic**. It does not include an ORM (like TypeORM o
 
 ```bash
 pnpm run test        # Unit tests
-pnpm run test:e2e    # End-to-end tests
-pnpm run test:cov    # Coverage report
 ```
 
 ---

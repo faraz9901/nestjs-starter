@@ -15,7 +15,6 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Server Running!"', () => {
-
       const response = appController.getHello();
 
       expect(response).toEqual(

@@ -5,11 +5,13 @@ import { ApiRes } from './decorators/api-responses.decorator';
 
 @Controller()
 export class AppController extends BaseController {
-  constructor() { super(); }
+  constructor() {
+    super();
+  }
 
   @Get()
-  @ApiRes("Health Check", EmptyResponse, HttpStatus.OK, { isArray: false })
+  @ApiRes('Health Check', EmptyResponse, HttpStatus.OK, { isArray: false })
   getHello() {
-    return this.respondOk(null, "Server Running...");
+    return this.respondOk(null, 'Server Running...');
   }
 }

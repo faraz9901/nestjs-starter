@@ -9,7 +9,7 @@ import { NestWinstonLogger, winstonLogger } from './common/logger.service';
 import { ErrorBody, SuccessBody } from './common/swagger';
 import { configService } from './config/config.service';
 import { ResponseInterceptor } from './interceptors/responses.interceptor';
-import { json } from 'express';
+import { json, type Request, type Response } from 'express';
 import compression from 'compression';
 import helmet from 'helmet';
 
@@ -30,7 +30,6 @@ async function bootstrap() {
 
   const port = configService.getPort() || 9000;
 
-
   // Use a global interceptor to wrap all responses in a consistent `{ success, message, data }` structure
   app.useGlobalInterceptors(new ResponseInterceptor());
 
@@ -43,7 +42,9 @@ async function bootstrap() {
       .setTitle('APIs Documentation')
       .setDescription('API documentation for this project')
       .setVersion('1.0')
-      .addServer(configService.getValue("BASE_URL", false) || `http://localhost:${port}`)
+      .addServer(
+        configService.getValue('BASE_URL', false) || `http://localhost:${port}`,
+      )
       .addBearerAuth(
         {
           type: 'http',
@@ -59,11 +60,13 @@ async function bootstrap() {
       extraModels: [SuccessBody, ErrorBody],
     });
 
-    app.getHttpAdapter().get('/api/openapi.json', (_req, res) => {
-      return res.json(document);
-    });
+    app
+      .getHttpAdapter()
+      .get('/api/openapi.json', (_req: Request, res: Response) => {
+        return res.json(document);
+      });
 
-    SwaggerModule.setup('api/docs', app, document)
+    SwaggerModule.setup('api/docs', app, document);
 
     // Scalar - primary modern docs
     app.use(
@@ -83,13 +86,10 @@ async function bootstrap() {
     );
   }
 
-
   //Sensible defaults for security and performance - customize as needed for your project
   app.use(compression());
   app.use(helmet());
   app.use(json({ limit: '1mb' }));
-
-
 
   app.enableShutdownHooks();
 
@@ -103,5 +103,4 @@ async function bootstrap() {
   await app.listen(port);
 }
 
-
-bootstrap();
+void bootstrap();

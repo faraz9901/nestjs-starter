@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-export const als = new AsyncLocalStorage<Map<string, any>>();
+export const als = new AsyncLocalStorage<Map<string, string>>();
 
-export const getRequestId = () => als.getStore()?.get('requestId');
+export const getRequestId = (): string | undefined =>
+  als.getStore()?.get('requestId');

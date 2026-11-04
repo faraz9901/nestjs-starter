@@ -15,8 +15,9 @@ import { UsersService } from './users.service';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController extends BaseController {
-
-  constructor(private readonly userService: UsersService) { super(); }
+  constructor(private readonly userService: UsersService) {
+    super();
+  }
 
   @Get()
   @ResponseOptions({ strip: true, validate: true })
@@ -48,7 +49,6 @@ export class UsersController extends BaseController {
   @Get('/buffer')
   @SkipResponseTransform()
   async getBuffer(@Res() res: Response) {
-
     const filePath = getAssetPath('dummy-assets.txt');
 
     const buffer = await fs.readFile(filePath);
@@ -57,5 +57,4 @@ export class UsersController extends BaseController {
     res.attachment('sample.txt');
     res.send(buffer);
   }
-
 }
