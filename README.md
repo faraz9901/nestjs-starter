@@ -1,44 +1,39 @@
 # 🚀 NestJS Production-Ready Starter Kit
 
-A production-ready **NestJS boilerplate** designed for scalability, consistency, and developer experience. This starter provides a solid foundation for building RESTful APIs with standardized responses, advanced error handling, automated documentation, and high-performance caching.
+A production-ready **NestJS boilerplate** designed for scalability, consistency, and developer experience. This starter provides a solid foundation for building RESTful APIs with standardized responses, Zod-based validation, advanced error handling, automated documentation, and high-performance caching.
 
 ---
 
 ## 📖 Table of Contents
-- [✨ Why this Starter exists](#-starter-exists)
+- [✨ Why this Starter exists](#-why-this-starter-exists)
 - [✨ Features Overview](#-features-overview)
 - [🛠 Prerequisites](#-prerequisites)
 - [🚀 Quick Start](#-quick-start)
 - [📂 Project Structure](#-project-structure)
 - [🧠 Core Concepts](#-core-concepts)
   - [Standardized API Responses](#standardized-api-responses)
-  - [Global Validation](#global-validation)
+  - [Global Validation (Zod)](#global-validation-zod)
   - [Error Handling](#error-handling)
-  - [Documentation (Swagger, Scalar, ReDoc)](#documentation-swagger-scalar-redoc)
   - [🔄 SWR Cache System](#-swr-cache-system)
   - [📁 Static Assets & File Management](#-static-assets--file-management)
   - [🏥 Health Check](#-health-check)
   - [Event-Driven Architecture](#event-driven-architecture)
-  - [Configuration Management](#configuration-management)
-- [🏗️ Base Classes](#-base-classes)
+- [🏗️ Base Classes](#️-base-classes)
   - [BaseController](#basecontroller)
   - [BaseService](#baseservice)
 - [🎨 Custom Decorators](#-custom-decorators)
   - [@ApiRes](#apires)
-  - [@ExposeApiProperty](#exposeapiproperty)
   - [@SwrCache](#swrcache)
   - [@SkipResponseTransform](#skipresponsetransform)
-- [🛡️ Security & Performance](#-security--performance)
-- [🔄 Response Interceptor](#-response-interceptor)
+- [🛡️ Security & Performance](#️-security--performance)
 - [📝 Logging System](#-logging-system)
   - [Winston Logging](#winston-based-logging)
   - [Request ID Traceability](#request-scoped-request-id-in-logs)
-  - [⏱️ Timing Metrics](#timing-metrics)
+  - [⏱️ Timing Metrics](#️-timing-metrics)
 - [🚦 Rate Limiting](#-rate-limiting)
 - [🛑 Graceful Shutdown](#-graceful-shutdown)
 - [👨‍💻 Development Guide](#-development-guide)
   - [Database & ORM](#database--orm)
-  - [Security & CORS](#security--cors)
   - [Creating a New Module](#creating-a-new-module)
 - [🧪 Testing](#-testing)
 - [📜 Available Scripts](#-available-scripts)
@@ -68,16 +63,13 @@ without forcing:
 - authentication systems
 - architectural patterns
 
-
-
 ---
-
 
 ## ✨ Features Overview
 
 | Feature | Description |
 | :------ | :---------- |
-| **🛡️ Global Validation** | Automatic DTO validation and transformation using `class-validator`. |
+| **🛡️ Global Validation** | Automatic request validation using **Zod** + `nestjs-zod` (`createZodDto`, `ZodValidationPipe`). |
 | **📦 Standardized Responses** | Uniform API response structure (`success`, `message`, `data`) via Global Interceptor. |
 | **🚨 Centralized Error Handling** | Global Exception Filter with comprehensive error codes and consistent formatting. |
 | **📚 3x API Documentation** | Swagger UI, Scalar Reference, and ReDoc all served from one OpenAPI spec. |
@@ -91,14 +83,15 @@ without forcing:
 | **🪵 Pro Logging** | Winston-powered logger with per-request context and unique Request IDs. |
 | **🛑 Graceful Shutdown** | Ensures cleanup and safe disconnection on app termination. |
 | **🐳 Docker Ready** | Production-optimized Dockerfile and docker-compose setup. |
-| **✨ Custom Decorators** | Clean, maintainable code with `@ApiRes`, `@SwrCache`, and `@ExposeApiProperty`. |
+| **✨ Custom Decorators** | Clean, maintainable code with `@ApiRes`, `@SwrCache`, and `@SkipResponseTransform`. |
+| **🔗 Shareable Schemas** | Pure Zod schemas usable on both backend (validation/docs) and frontend (forms/types). |
 
 ---
 
 ## 🛠 Prerequisites
 
-- **Node.js**: v18 or higher
-- **Package Manager**: [pnpm](https://pnpm.io/) (recommended), npm, or yarn
+- **Node.js**: v20 or higher (v22 recommended; Docker image uses `node:22-alpine`)
+- **Package Manager**: npm (lockfile included), or pnpm/yarn
 
 ---
 
@@ -111,7 +104,7 @@ git clone https://github.com/faraz9901/nestjs-starter
 cd nestjs-starter
 
 # Install dependencies
-pnpm install
+npm install
 
 # Setup environment variables
 cp .env.example .env
@@ -120,11 +113,11 @@ cp .env.example .env
 ### 🚀 Running the Application
 ```bash
 # Development mode (with hot-reload)
-pnpm run dev
+npm run dev
 
 # Production mode
-pnpm run build
-pnpm run start:prod
+npm run build
+npm run start:prod
 ```
 
 ### 🐳 Docker Setup
@@ -132,15 +125,14 @@ Run the entire stack (including any services you add) with one command:
 ```bash
 docker-compose up --build
 ```
-The app will be available at `http://localhost:9000`.
-
-The server will start on `http://localhost:9000`.
+The app will be available at `http://localhost:9000` (port from `.env` / compose mapping).
 
 ### 3. Explore the Documentation
 Access your API documentation in three different styles (Development only):
-- **Swagger UI**: `http://localhost:9000/api/docs`
-- **Scalar Reference**: `http://localhost:9000/api/scalar`
-- **ReDoc**: `http://localhost:9000/api/redoc`
+- **Swagger UI**: `http://localhost:<PORT>/api/docs`
+- **Scalar Reference**: `http://localhost:<PORT>/api/scalar`
+- **ReDoc**: `http://localhost:<PORT>/api/redoc`
+- **OpenAPI JSON**: `http://localhost:<PORT>/api/openapi.json`
 
 ---
 
@@ -154,24 +146,26 @@ src/
 │   ├── errors.ts                # ErrorCode enum, ApiError, Global Filter
 │   ├── get-assets.ts            # 📁 Asset path resolution helper
 │   ├── logger.service.ts        # Winston logger + AppLogger wrapper
-│   ├── request-logging/          # Request ID + HTTP lifecycle logging
+│   ├── request-logging/         # Request ID + HTTP lifecycle logging
 │   ├── shuttingdown-hook.ts     # 🛑 Graceful shutdown handler
-│   └── swagger.ts               # Swagger helper types & SuccessBody model
+│   └── swagger.ts               # ApiSuccessResponse, SuccessBody, ErrorBody, EmptyResponse
 ├── config/
 │   └── config.service.ts        # Type-safe environment configuration
 ├── decorators/
-│   ├── api-responses.decorator.ts    # @ApiRes decorator
-│   ├── expose-api-property.decorator.ts  # Combined @Expose + @ApiProperty
+│   ├── api-responses.decorator.ts       # @ApiRes (docs + response metadata + validate)
 │   └── skip-response-transform.decorator.ts # Bypass interceptor
 ├── events/
 │   └── UserUpdatedEvent.ts      # Example event class
 ├── interceptors/
-│   └── responses.interceptor.ts # Global response transformation
+│   └── responses.interceptor.ts # Global response envelope + Zod response validation
 ├── assets/                      # 🖼️ Static assets (images, templates, etc.)
 ├── modules/                     # Feature modules (Business Logic)
 │   ├── cache/                   # 🔥 SWR Cache Module (Storage, Locks, Decorators)
 │   └── users/                   # 👤 Example User module
-├── app.controller.ts            # Root controller
+│       ├── user.schema.ts       # Pure Zod schemas (request + response)
+│       ├── users.dto.ts         # createZodDto wrapper for request body
+│       └── user.responses.ts    # createZodDto wrapper for response shape
+├── app.controller.ts            # Root controller (health check)
 ├── app.module.ts                # Root module with global configuration
 └── main.ts                      # Application entry point & Global setup
 ```
@@ -205,22 +199,47 @@ All API responses follow a consistent envelope structure, automatically applied 
 
 ---
 
-### Global Validation
+### Global Validation (Zod)
 
-The application uses a globally configured `ValidationPipe`. It strips properties not in your DTO and automatically transforms payloads into class instances.
+The application uses a globally configured **`ZodValidationPipe`** (from `nestjs-zod`). Incoming request bodies are validated and transformed against **Zod schemas** wrapped as DTOs via `createZodDto`.
 
-**Example DTO:**
+**Example schema + DTO:**
 ```typescript
-import { IsString, IsEmail } from 'class-validator';
+// user.schema.ts — pure Zod, no Nest imports (shareable with frontend)
+import { z } from 'zod';
 
-export class CreateUserDto {
-  @IsString()
-  name: string;
+export const userSchema = z.strictObject({
+  id: z.number().meta({ example: 1 }),
+  name: z.string().meta({ example: 'John Doe' }),
+  password: z.string().meta({ example: 'StrongPassword' }),
+});
 
-  @IsEmail()
-  email: string;
+export type User = z.infer<typeof userSchema>;
+```
+
+```typescript
+// users.dto.ts — Nest-facing wrapper
+import { createZodDto } from 'nestjs-zod';
+import { userSchema } from './user.schema';
+
+export class UserDto extends createZodDto(userSchema) {}
+```
+
+**In a controller:**
+```typescript
+@Post()
+@ApiRes('Create user', EmptyResponse, HttpStatus.OK)
+createUser(@Body() dto: UserDto) {
+  // dto is validated & typed from the Zod schema
 }
 ```
+
+**Key behaviors:**
+- **`z.strictObject`** rejects unknown keys (equivalent to old `forbidNonWhitelisted`).
+- **`.meta({ example })`** feeds examples into OpenAPI/Swagger docs.
+- Validation errors are mapped to the standard error envelope (`message`, `code`, `details`) by a custom exception factory in `main.ts`.
+
+**Response validation (optional):** When `validate: true` is set on `@ApiRes` (or `VALIDATE_RESPONSES=true` globally), the `ResponseInterceptor` runs `schema.parse()` on outgoing data — this both **validates** and **strips unknown fields** (e.g. dropping `password` from `UserResponse`).
 
 ---
 
@@ -251,13 +270,14 @@ This starter includes a custom **Stale-While-Revalidate (SWR)** caching module. 
 **Example Usage:**
 ```typescript
 @Get()
+@ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
 @SwrCache({
-  key: (req) => `users:list:${req.query.page}`, // Custom cache key
-  softTtlMs: 30000, // 30 seconds
-  hardTtlMs: 60000, // 60 seconds
+  key: (req) => `${req.method}:${req.url}`, // Custom cache key
+  softTtlMs: 30_000, // 30 seconds
+  hardTtlMs: 60_000, // 60 seconds
 })
 async findAll() {
-  return this.userService.getUsers();
+  return this.respondOk(await this.userService.getUsers(), 'Users fetched successfully');
 }
 ```
 
@@ -279,7 +299,7 @@ export class ProductService {
 
     // On miss, fetch from source and update cache
     const product = await this.fetchProductFromDB(id);
-    await this.cache.set(key, product, 30000, 60000);
+    await this.cache.set(key, product, 30_000, 60_000);
     return product;
   }
 
@@ -317,20 +337,12 @@ The starter kit includes a dedicated `src/assets` folder for static files (image
 #### 🛠️ Helper: `getAssetPath`
 Located in `src/common/get-assets.ts`, this utility ensures you always get the correct absolute path to your assets, whether running in development or production.
 
-**Example Usage in a Service:**
+**Example Usage:**
 ```typescript
-import { getAssetPath } from 'src/common/get-assets';
+import { getAssetPath } from '@/common/get-assets';
 
-@Injectable()
-export class UsersService {
-  async processImage(filename: string) {
-    // Resolves to: /absolute/path/to/src/assets/images/logo.png
-    const imagePath = await getAssetPath('images', filename);
-    
-    // ... logic to read/process the file
-    return imagePath;
-  }
-}
+const filePath = getAssetPath('dummy-assets.txt');
+// Resolves to: <project>/src/assets/dummy-assets.txt (or dist/assets in prod)
 ```
 
 ---
@@ -352,7 +364,8 @@ Built-in support for `@nestjs/event-emitter`.
 export class UsersService extends BaseService {
   updateUser(userId: string) {
     // ... logic
-    this.emit(new UserUpdatedEvent(userId));
+    this.emitAsync(new UserUpdatedEvent(userId));
+    // or fire-and-forget: this.emit(new UserUpdatedEvent(userId));
   }
 }
 ```
@@ -371,8 +384,8 @@ handleUserUpdated(event: UserUpdatedEvent) {
 
 ### BaseController
 Provides helper methods for consistent response formatting.
-- `this.respondOk(data, message?)` -> Returns 200 OK
-- `this.respondCreated(data, message?)` -> Returns 201 Created
+- `this.respondOk(data, message?)` → Returns 200 OK
+- `this.respondCreated(data, message?)` → Returns 201 Created
 
 ### BaseService
 Provides pre-configured utilities:
@@ -396,19 +409,46 @@ export class AnalyticsService extends BaseService {
 ## 🎨 Custom Decorators
 
 ### @ApiRes
-Combines `@ApiOperation` and Swagger response documentation into one.
+Combines `@ApiOperation`, Swagger response documentation, and response-validation metadata into one decorator.
+
 ```typescript
-@ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
+@ApiRes('Get all users', UserResponse, HttpStatus.OK, {
+  isArray: true,   // document data as an array
+  validate: true,  // force response validation for this endpoint (overrides VALIDATE_RESPONSES)
+})
 ```
 
-### @ExposeApiProperty
-Combines `@Expose` (class-transformer) and `@ApiProperty` (Swagger). Essential for the `ResponseInterceptor` to know which fields to return.
+| Option | Type | Description |
+| :----- | :--- | :---------- |
+| `isArray` | `boolean` | Document `data` as an array of the response type. |
+| `validate` | `boolean` | Per-endpoint override for response validation. Omitted → falls back to `VALIDATE_RESPONSES` env. |
+
+**How it works:**
+- Pulls the Zod schema from the `createZodDto` class and stores it as metadata for the `ResponseInterceptor`.
+- When `validate` is effective, the interceptor runs `schema.parse(data)` — validating the payload and stripping unknown fields.
+
+#### Per-endpoint validation control
+
+Global default comes from the environment:
+
+| Variable | Description | Default |
+| :------- | :---------- | :------ |
+| `VALIDATE_RESPONSES` | Validate outgoing responses against the Zod response schema | `false` |
+
+Override per endpoint:
+
 ```typescript
-export class UserResponse {
-  @ExposeApiProperty({ example: 1 })
-  id: number;
-}
+// Force validation even if env is false (public APIs, payments, critical DTOs)
+@ApiRes('Get user', UserResponse, HttpStatus.OK, { validate: true })
+
+// Skip validation for heavy/internal endpoints
+@ApiRes('List items', ItemResponse, HttpStatus.OK, { isArray: true, validate: false })
 ```
+
+Useful for:
+- public APIs / payment responses / critical DTO contracts
+- large datasets and performance-sensitive routes
+- debugging serialization issues
 
 ### @SwrCache
 Enables the SWR caching strategy on a controller method.
@@ -418,88 +458,6 @@ Enables the SWR caching strategy on a controller method.
 
 ### @SkipResponseTransform
 Bypasses the global response wrapper. Use this for raw data like file downloads or buffers.
-
-### @ResponseOptions
-
-By default, response transformation and validation behavior are controlled globally through environment variables:
-
-| Variable             | Description                                  | Default |
-| :------------------- | :------------------------------------------- | :------ |
-| `STRIP_RESPONSES`    | Removes properties not marked with `@Expose` or `@ExposeApiProperty` | `false` |
-| `VALIDATE_RESPONSES` | Validates outgoing DTO responses (need class-validator decorators to work)            | `false` |
-
-However, there are cases where you may want to enforce these behaviors for specific endpoints regardless of the environment configuration.
-
-The `@ResponseOptions()` decorator allows per-endpoint overrides for:
-
-* response stripping
-* DTO validation
-
----
-
-#### Basic Usage
-
-```typescript
-@Get(':id')
-@ApiRes('Get user', UserResponse)
-@ResponseOptions({
-  strip: true,
-  validate: true,
-})
-async findOne(@Param('id') id: string) {
-  return this.respondOk(await this.userService.findById(id));
-}
-```
-
----
-
-#### Available Options
-
-| Option     | Description                                        |
-| :--------- | :------------------------------------------------- |
-| `strip`    | Removes fields not decorated with `@Expose`        |
-| `validate` | Validates transformed DTOs using `class-validator` |
-
----
-
-#### Example: Force Validation in Production
-
-Even if global validation is disabled:
-
-```env
-VALIDATE_RESPONSES=false
-```
-
-You can still enforce validation for sensitive endpoints:
-
-```typescript
-@ResponseOptions({
-  validate: true,
-})
-```
-
-This is useful for:
-
-* public APIs
-* payment responses
-* critical DTO contracts
-* debugging serialization issues
-
----
-
-#### Example: Disable Validation for Heavy Endpoints
-
-```typescript
-@ResponseOptions({
-  validate: false,
-})
-```
-
-Useful for:
-
-* large datasets
-* internal admin endpoints
-* performance-sensitive routes
 
 ---
 
@@ -517,7 +475,7 @@ This kit includes production-ready defaults for security and performance in `mai
 ## 📝 Logging System
 
 ### Winston-based Logging
-NestJS internal logs and service logs are routed through **Winston**. 
+NestJS internal logs and service logs are routed through **Winston**.
 - Key file: `src/common/logger.service.ts`
 - Formatted output: `[TIMESTAMP] LEVEL [CONTEXT] MESSAGE`
 
@@ -525,7 +483,7 @@ NestJS internal logs and service logs are routed through **Winston**.
 If your class does not extend `BaseService` (e.g., a standalone utility or helper), you can still use the `AppLogger` manually:
 
 ```typescript
-import { AppLogger, winstonLogger } from 'src/common/logger.service';
+import { AppLogger, winstonLogger } from '@/common/logger.service';
 
 export class DataHelper {
   private readonly logger = new AppLogger(winstonLogger, 'DataHelper');
@@ -586,19 +544,52 @@ This boilerplate is **ORM-agnostic**. It does not include an ORM (like TypeORM o
 
 ### Creating a New Module
 1. Generate the module: `nest g resource modules/products`
-2. Create separate files for:
-   - `product.dto.ts` (Input validation)
-   - `product.responses.ts` (Output transformation)
-3. Extend `BaseController` and `BaseService`.
-4. Use `@ApiRes` and `@ExposeApiProperty` for documentation and transformation.
+2. Create a pure Zod schema file (e.g. `product.schema.ts`) — no Nest imports, so it can be shared with a frontend later.
+3. Create thin DTO wrappers with `createZodDto`:
+   - `product.dto.ts` (request body)
+   - `product.responses.ts` (response shape)
+4. Extend `BaseController` and `BaseService`.
+5. Use `@ApiRes` for documentation + optional response validation.
+
+**Example:**
+```typescript
+// product.schema.ts
+import { z } from 'zod';
+
+export const productSchema = z.strictObject({
+  id: z.number().meta({ example: 1 }),
+  name: z.string().meta({ example: 'Widget' }),
+});
+
+export const productResponseSchema = z.object(productSchema.shape).pick({ id: true, name: true });
+```
+
+```typescript
+// product.dto.ts
+import { createZodDto } from 'nestjs-zod';
+import { productSchema } from './product.schema';
+
+export class ProductDto extends createZodDto(productSchema) {}
+```
+
+```typescript
+// products.controller.ts
+@Get()
+@ApiRes('Get products', ProductResponse, HttpStatus.OK, { isArray: true, validate: true })
+async findAll() {
+  return this.respondOk(await this.productService.getAll(), 'Products fetched');
+}
+```
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-pnpm run test        # Unit tests
+npm test           # Run all tests (NODE_ENV=test, jest --config ./test/jest.json)
 ```
+
+Tests live next to sources as `*.spec.ts`. E2E-style tests boot the Nest app with `@nestjs/testing` + `supertest`.
 
 ---
 
@@ -607,10 +598,17 @@ pnpm run test        # Unit tests
 | Script | Description |
 | :----- | :---------- |
 | `build` | Compiles TypeScript to `dist/` |
-| `dev` | Starts in watch mode (development) |
-| `start:prod` | Runs compiled app from `dist/main.js` |
+| `dev` / `start:dev` | Starts in watch mode (development) |
+| `start` / `start:prod` | Runs compiled app from `dist/main` |
 | `lint` | Lints and fixes code using ESLint |
+| `lint:check` | Lint without fixing (CI-friendly) |
+| `typecheck` | TypeScript type checking (`tsc --noEmit`) |
 | `format` | Formats code using Prettier |
+| `test` | Runs Jest test suite |
+
+Git hooks (Husky):
+- **pre-commit**: `format`, `lint`, `git add -u`
+- **pre-push**: `typecheck`, `build`, `test`
 
 ---
 
@@ -622,12 +620,13 @@ Create a `.env` file based on `.env.example`:
 | :------- | :---------- | :------- | :------ |
 | `PORT` | HTTP server port | ✅ Yes | `9000` |
 | `NODE_ENV` | `development`, `production`, `test` | No | `development` |
-| `STRIP_RESPONSES` | Removes fields not marked with `@Expose` | No | `false` |
-| `VALIDATE_RESPONSES` | Validates outgoing data against DTO | No | `false` |
+| `VALIDATE_RESPONSES` | Validate outgoing responses against Zod response schemas | No | `false` |
 | `BASE_URL` | Used for Swagger server URL | No | `http://localhost:<PORT>` |
+
+> Note: `.env.test` is loaded automatically when `NODE_ENV=test` (used by the test suite).
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License (see [LICENSE](./LICENSE)).

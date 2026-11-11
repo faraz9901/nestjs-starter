@@ -15,7 +15,7 @@ export abstract class BaseService implements OnModuleInit {
   protected readonly logger: AppLogger;
 
   @Inject(EventEmitter2)
-  protected readonly eventEmitter!: EventEmitter2;
+  protected readonly eventEmitter: EventEmitter2;
 
   constructor() {
     this.logger = new AppLogger(winstonLogger, this.constructor.name);
