@@ -1,6 +1,6 @@
 import { getAssetPath } from '@/common/get-assets';
 import { EmptyResponse } from '@/common/swagger';
-import { ApiRes, ResponseOptions } from '@/decorators/api-responses.decorator';
+import { ApiRes } from '@/decorators/api-responses.decorator';
 import { SkipResponseTransform } from '@/decorators/skip-response-transform.decorator';
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -20,8 +20,10 @@ export class UsersController extends BaseController {
   }
 
   @Get()
-  @ResponseOptions({ strip: true, validate: true })
-  @ApiRes('Get all users', UserResponse, HttpStatus.OK, { isArray: true })
+  @ApiRes('Get all users', UserResponse, HttpStatus.OK, {
+    isArray: true,
+    validate: true,
+  })
   @SwrCache({
     key: (req) => `${req.method}:${req.url}`,
     softTtlMs: 30 * 1000, // 30 seconds

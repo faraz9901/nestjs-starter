@@ -5,28 +5,26 @@ import { ApiOperation } from '@nestjs/swagger';
 export const RESPONSE_TYPE_KEY = 'responseType';
 export const RESPONSE_OPTIONS_KEY = 'response_options';
 
+export interface ResponseOptions {
+  validate?: boolean;
+}
+
 export function ApiRes(
   summary: string,
   responseType: Type<unknown>,
   status: HttpStatus = HttpStatus.OK,
-  options: { isArray?: boolean; strip?: boolean } = {},
+  options: { isArray?: boolean; validate?: boolean } = {},
 ) {
+  // zod DTOs from createZodDto expose the schema as a static property
+  const schema = (responseType as { schema?: unknown }).schema;
+  const { isArray, validate } = options;
+
   return applyDecorators(
     ApiOperation({ summary }),
-    ApiSuccessResponse(responseType, { status, ...options }),
+    ApiSuccessResponse(responseType, { status, isArray }),
     // store metadata for interceptor to use
-    SetMetadata(RESPONSE_TYPE_KEY, { type: responseType, ...options }),
+    SetMetadata(RESPONSE_TYPE_KEY, { schema, isArray }),
+    // undefined validate → interceptor falls back to configService.validateResponses()
+    SetMetadata(RESPONSE_OPTIONS_KEY, { validate }),
   );
 }
-
-export interface ResponseOptions {
-  strip?: boolean;
-  validate?: boolean;
-}
-
-export const ResponseOptions = (options: ResponseOptions) => {
-  const strip = options.strip ?? true;
-  const validate = options.validate ?? true;
-
-  return SetMetadata(RESPONSE_OPTIONS_KEY, { strip, validate });
-};

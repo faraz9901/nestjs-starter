@@ -1,8 +1,10 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { BadRequestException } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/express-api-reference';
 import redoc from 'redoc-express';
+import { cleanupOpenApiDoc, createZodValidationPipe } from 'nestjs-zod';
+import { ZodError } from 'zod';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/errors';
 import { NestWinstonLogger, winstonLogger } from './common/logger.service';
@@ -13,25 +15,35 @@ import { json, type Request, type Response } from 'express';
 import compression from 'compression';
 import helmet from 'helmet';
 
+// Map zod errors to the same BadRequestException shape ValidationPipe produced:
+// { message: string[] } which AllExceptionsFilter turns into { message, details }
+const ZodValidationPipe = createZodValidationPipe({
+  createValidationException: (error: unknown) => {
+    const issues = error instanceof ZodError ? error.issues : [];
+    const messages = issues.map((issue) =>
+      issue.path.length > 0
+        ? `${issue.path.join('.')}: ${issue.message}`
+        : issue.message,
+    );
+    return new BadRequestException({
+      message: messages.length > 0 ? messages : ['Validation failed'],
+    });
+  },
+});
+
 // Application entrypoint: creates the Nest app and wires up global behavior
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: new NestWinstonLogger(winstonLogger),
   });
 
-  // Enable validation pipes globally so all incoming DTOs are validated
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  // Validate/transform incoming request bodies against zod DTO schemas
+  app.useGlobalPipes(new ZodValidationPipe());
 
   const port = configService.getPort() || 9000;
 
   // Use a global interceptor to wrap all responses in a consistent `{ success, message, data }` structure
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new ResponseInterceptor(new Reflector()));
 
   // Global error handler for catching and formatting unhandled exceptions
   app.useGlobalFilters(new AllExceptionsFilter());
@@ -56,9 +68,11 @@ async function bootstrap() {
       )
       .build();
 
-    const document = SwaggerModule.createDocument(app, config, {
-      extraModels: [SuccessBody, ErrorBody],
-    });
+    const document = cleanupOpenApiDoc(
+      SwaggerModule.createDocument(app, config, {
+        extraModels: [SuccessBody, ErrorBody],
+      }),
+    );
 
     app
       .getHttpAdapter()

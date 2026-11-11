@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import request from 'supertest';
 import { AppModule } from '../app.module';
 import { ResponseInterceptor } from './responses.interceptor';
@@ -15,7 +16,7 @@ describe('ResponseInterceptor (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
 
-    app.useGlobalInterceptors(new ResponseInterceptor());
+    app.useGlobalInterceptors(new ResponseInterceptor(new Reflector()));
 
     await app.init();
   });

@@ -6,10 +6,7 @@ import {
   ApiProperty,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ApiResponse } from './base.controller';
 import { ErrorCode } from './errors';
-
-export class EmptyResponse extends ApiResponse<null> {}
 
 // Helper decorator to describe successful responses using the common envelope in Swagger
 export const ApiSuccessResponse = <TModel extends Type<any>>(
@@ -78,3 +75,5 @@ export class ErrorBody {
   @ApiProperty({ enum: ErrorCode, example: ErrorCode.INTERNAL_ERROR })
   code: ErrorCode;
 }
+
+export class EmptyResponse extends SuccessBody {}

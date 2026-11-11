@@ -13,7 +13,6 @@ const ENV_VARIABLES = {
   PORT: 'PORT',
   NODE_ENV: 'NODE_ENV',
   BASE_URL: 'BASE_URL',
-  STRIP_RESPONSES: 'STRIP_RESPONSES',
   VALIDATE_RESPONSES: 'VALIDATE_RESPONSES',
 } as const;
 
@@ -52,11 +51,6 @@ class ConfigService {
   public isDevelopment() {
     const mode = this.getValue('NODE_ENV');
     return mode === 'development';
-  }
-
-  public stripResponses() {
-    const mode = this.getValue('STRIP_RESPONSES');
-    return mode === 'true';
   }
 
   public validateResponses() {

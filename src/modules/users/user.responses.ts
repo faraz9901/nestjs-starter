@@ -1,12 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
-import { ExposeApiProperty } from '@/decorators/expose-api-property.decorator';
+import { userResponseSchema } from '@/modules/users/user.schema';
+import { createZodDto } from 'nestjs-zod';
 
-export class UserResponse {
-  @ExposeApiProperty({ example: 1 })
-  @IsNumber()
-  id: number;
-
-  @ExposeApiProperty({ example: 'John Doe' })
-  @IsString()
-  name: string;
-}
+export class UserResponse extends createZodDto(userResponseSchema) {}
